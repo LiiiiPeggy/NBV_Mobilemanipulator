@@ -1,32 +1,83 @@
-# MEMORY.md — 长期技术知识
+# MEMORY.md — 长期知识
 
-## 宿主与容器基线
+只记录经代码/配置/运行验证、能避免重复排查或错误修改的知识。  
+完整日志与一次性实验细节见 `reports/`、`logs/`；决策过程见 `PROCESS.md`。
 
-- 宿主机：Ubuntu 22.04.5，RTX A6000，Driver 550.163.01，CUDA 12.4（驱动侧），Docker 27.3.1，nvidia runtime 可用。
-- 容器基镜像：`osrf/ros:noetic-desktop-full` → Ubuntu 20.04.6 + ROS Noetic + Gazebo Classic 11。
-- SSMI 额外：`ignition-fortress`（`IGNITION_VERSION=fortress`，实测 `ign gazebo` 版本 6.17.1）。
-- GPU 透传：Compose `runtime: nvidia` + `NVIDIA_VISIBLE_DEVICES=all` + `NVIDIA_DRIVER_CAPABILITIES=all`。
-- X11：挂载 `/tmp/.X11-unix` 与 `/tmp/.docker.xauth.nbv`；由 `scripts/setup_x11.sh` 写入 FamilyWild cookie；禁止 `xhost +`。
+## 1. 稳定环境约束
 
-## FKIE
+| 约束 | 内容 |
+|------|------|
+| 宿主机 | Ubuntu 22.04.5，RTX A6000，Driver 550.163.01，CUDA 12.4（驱动侧） |
+| Docker | 27.3.1，Compose v2.29.7，runtime 含 `nvidia` |
+| 容器目标 | Ubuntu 20.04 + ROS Noetic；基镜像 `osrf/ros:noetic-desktop-full` |
+| 项目根 | `/home/ubuntu/locomani/NBV_Mobilemanipulator` → 容器 `/workspace` |
+| 他人环境 | 宿主机上多人容器长期运行；**禁止**停改删他人资源 |
 
-- 源码 SHA：`fkie-nbv-planner` `91091f8a…`；依赖 `fkie_ddynamic_reconfigure`、`fkie_environmental_measurements`。
-- Action 名：节点 ns=`robot` 下 `nbv_rrt` → `/robot/nbv_rrt`（见 `NBVPlanner.cpp`）。
-- 规划输入：`camera_pose`、`octomap`（launch 中 remap 为 `octomap_full`）、`robot_bbx`（MBF footprint）。
-- 官方 `run_planner.launch` 使用 gdb 前缀；Docker 验证用 `configs/fkie/run_planner_nogdb.launch` 或直接 `rosrun`。
-- catkin 工作空间：`ws_fkie/src` 使用**相对**符号链接到 `third_party/...`（绝对链接在容器内无效）。
+GPU Compose 要点：`runtime: nvidia`，`NVIDIA_VISIBLE_DEVICES=all`，`NVIDIA_DRIVER_CAPABILITIES=all`，挂载 `/dev/dri`。  
+X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x11.sh`）；**禁止** `xhost +` / 默认不使用 `privileged`。
 
-## SSMI
+## 2. Docker 栈划分
 
-- 官方仓名：`ExistentialRobotics/SSMI-example`（小写 example）。
-- 官方需求：Ubuntu 20.04 + ROS Noetic + Gazebo Fortress；Docker 在 22.04 宿主机上测过 —— 与本机一致。
-- 关键话题：`/rgbd_camera/{image,depth_image,camera_info}`，`/semantic/{colored_map,labels_map}`，`/semantic_pcl/semantic_pcl`，`/octomap_full`，`/planner/path`。
-- 编译需 `libgflags-dev`（`ros_ign_gazebo` 的 `create.cpp`）。
-- `teleop_twist_keyboard` 在无 TTY 的 `docker exec` 下会因 `termios` 失败；不影响相机/地图。
+| 栈 | Compose | 镜像 | 容器名 | 仿真 |
+|----|---------|------|--------|------|
+| FKIE | `docker-compose.fkie.yml`（`name: nbv_fkie`） | `nbv-fkie:noetic` | `nbv_fkie` | Gazebo Classic 11 |
+| SSMI | `docker-compose.ssmi.yml`（`name: nbv_ssmi`） | `nbv-ssmi:noetic` | `nbv_ssmi` | Ignition Fortress（`ign` 6.17.x） |
 
-## Compose / 运维
+- 两栈均 `network_mode: host` + `ipc: host`。
+- **完整仿真不要并行**；Gazebo Classic master 默认 `11345`。可用 `GAZEBO_MASTER_URI=http://127.0.0.1:<port>` 隔离 Classic。
+- 镜像只装系统依赖；源码与 catkin 产物在挂载目录（已 gitignore）。
+- 第三方源码本地克隆、各自保留 `.git`；版本钉在 `third_party/README.md`；用 `scripts/clone_third_party.sh`。
 
-- 项目名：`name: nbv_fkie` / `name: nbv_ssmi`，容器名 `nbv_fkie` / `nbv_ssmi`。
-- 均 `network_mode: host` + `ipc: host`；完整仿真不要两套同时跑（Gazebo Classic master `11345` 等冲突）。
-- 可用 `GAZEBO_MASTER_URI=http://127.0.0.1:<port>` 隔离 Classic 实例。
-- 镜像内不 COPY 项目源码；编译产物落在挂载目录并 gitignore。
+## 3. FKIE（已验证接口）
+
+**Pin**：`fkie-nbv-planner` `91091f8a…`；依赖 `fkie_ddynamic_reconfigure`、`fkie_environmental_measurements`。
+
+- Action：`/robot/nbv_rrt`（`NBVPlanner.cpp` 中 `planning_as_(..., "nbv_rrt", ...)`，节点 ns=`robot`）。
+- 订阅：`camera_pose`、`octomap`（launch remap → `octomap_full`）、`robot_bbx`（MBF footprint）。
+- 启动：官方 `run_planner.launch` 带 **gdb**；容器内用 `configs/fkie/run_planner_nogdb.launch` 或 `rosrun` + `scripts/fkie_smoke_test.sh`。
+- 工作空间：`ws_fkie/src` 必须用**相对**符号链接到 `../../third_party/...`（绝对 `/home/ubuntu/...` 在容器内失效）。
+- World：`third_party/fkie-nbv-planner/worlds/warehouse_icra_large.world` 等可被 Classic 加载。
+- **易错**：Action SUCCEEDED + 空 `goals` ≠ 有效 NBV；完整闭环还需 RealSense 点云链路与 footprint（官方平台栈未进本仓）。
+
+## 4. SSMI（已验证接口）
+
+**Pin**：`SSMI-example` `750122b8…`（注意 GitHub 仓名小写 `example`）；子模块 SSMI `727d815…`。
+
+- 启动：`roslaunch semantic_segmentation_husky seg_husky.launch` → mapping → planning →（可选）`jackal_pd`；或 `ssmi_ws/scripts/launch_ssmi_example.sh` / `scripts/ssmi_smoke_test.sh`。
+- 关键话题（已实测有数据）：
+  - `/rgbd_camera/{image,depth_image,camera_info}`
+  - `/semantic/{colored_map,labels_map}`
+  - `/semantic_pcl/semantic_pcl`
+  - `/octomap_full`、`/octomap_color`
+  - `/planner/path`、`/planner/position_cmd`
+- 编译硬依赖：`libgflags-dev`（`ros_ign_gazebo`）。
+- `rosdep update` 可能超时：Dockerfile 中非致命即可。
+- 无 TTY 时 `teleop_twist_keyboard` 会 termios 失败；可忽略。
+
+## 5. 常见故障（已定位）
+
+| 症状 | 原因 | 处理 |
+|------|------|------|
+| catkin「No packages found」 | 宿主机绝对路径 symlink | 相对链接 `setup_fkie_ws.sh` |
+| SSMI 镜像 build 失败于 rosdep | 网络超时 | `(rosdep update \|\| true)` |
+| `gflags/gflags.h` missing | 未装 libgflags | `libgflags-dev` |
+| `pkill -f ign` 自杀 | cmdline 含 `ign` | 用 PID / `rosnode kill` |
+| Gazebo `Address already in use` | host 网络残留 gz* | kill 残留或换 `GAZEBO_MASTER_URI` |
+| 宿主机删不掉 build | 容器 root 产物 | 在容器内 `rm` 或改属主 |
+
+## 6. 主动视角 / 运动后端（设计原则，实现多为待验证）
+
+以下为项目方向上的稳定约定，**具体算法实现尚未在本仓落地验证**：
+
+- **对象记忆 / NBV**：规划输入应显式区分几何占用（octomap）与任务相关观测（语义/测量估计）；FKIE 的 `NbvPlanner.action` 已体现 boundary + estimations 分离。
+- **Baseline 对比**：FKIE 与 SSMI 保持独立栈，避免为「统一方便」合并 Compose 导致依赖/仿真引擎纠缠。
+- **运动后端（REMANI / TopAY）**：应以规划输出位姿/路径话题或 Action 为边界对接；未验证前不要改 FKIE/SSMI 核心消息定义来迁就后端。
+- **验证阶梯**：先保证地图与规划接口稳定，再接运动执行；不要跳过话题/Action 层直接宣称闭环。
+
+## 7. 禁止轻易改动的已验证点
+
+- `.:/workspace` 挂载与相对 symlink 策略  
+- 双 Compose 独立、`name: nbv_fkie|nbv_ssmi`  
+- Xauth cookie 方案（相对 `xhost +` / privileged）  
+- SSMI 使用 Fortress + `ros_gz` 官方示例路径  
+- 验证层级区分（编译 / 启动 / 调用 / 闭环 / 实机）
