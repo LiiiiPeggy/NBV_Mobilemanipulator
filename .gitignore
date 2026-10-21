@@ -1,0 +1,66 @@
+# Local third-party clones (own .git; use scripts/clone_third_party.sh)
+third_party/fkie-nbv-planner/
+third_party/fkie_ddynamic_reconfigure/
+third_party/fkie_environmental_measurements/
+third_party/SSMI-Example/
+
+# Catkin / build caches
+ws_fkie/build/
+ws_fkie/devel/
+ws_fkie/logs/
+ws_fkie/.catkin_tools/
+ws_fkie/src/
+third_party/SSMI-Example/ssmi_ws/build/
+third_party/SSMI-Example/ssmi_ws/devel/
+third_party/SSMI-Example/ssmi_ws/logs/
+third_party/SSMI-Example/ssmi_ws/.catkin_tools/
+**/__pycache__/
+*.pyc
+*.pyo
+.catkin_workspace
+
+# Experiment outputs (keep directory via .gitkeep)
+data/rosbags/**
+!data/rosbags/.gitkeep
+data/maps/**
+!data/maps/.gitkeep
+data/metrics/**
+!data/metrics/.gitkeep
+logs/**
+!logs/.gitkeep
+
+# Large / generated assets
+*.bag
+*.bag.active
+*.pcd
+*.bt
+*.ot
+*.pgm
+*.yaml.bak
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.engine
+*.bin
+*.weights
+
+# Secrets / local env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_rsa*
+*.xauth
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Docker build leftovers
+*.log
+core

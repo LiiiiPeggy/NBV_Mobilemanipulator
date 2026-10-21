@@ -1,0 +1,34 @@
+# FKIE NBV Planner — independent compose stack
+# Maps project root -> /workspace (edit on host, visible in container).
+name: nbv_fkie
+services:
+  fkie:
+    build:
+      context: ./docker/fkie
+      dockerfile: Dockerfile
+    image: nbv-fkie:noetic
+    container_name: nbv_fkie
+    runtime: nvidia
+    environment:
+      DISPLAY: ${DISPLAY}
+      XAUTHORITY: /tmp/.docker.xauth
+      QT_X11_NO_MITSHM: "1"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+      ROS_MASTER_URI: http://localhost:11311
+      LIBGL_ALWAYS_SOFTWARE: ${LIBGL_ALWAYS_SOFTWARE:-0}
+    volumes:
+      - .:/workspace:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTH_FILE:-/tmp/.docker.xauth.nbv}:/tmp/.docker.xauth:rw
+    devices:
+      - /dev/dri:/dev/dri
+    network_mode: host
+    ipc: host
+    stdin_open: true
+    tty: true
+    shm_size: "2gb"
+    working_dir: /workspace
+    command: ["sleep", "infinity"]
+    # Minimal privilege: no privileged, no xhost +
+    # GPU via nvidia runtime; X11 via cookie file prepared by scripts/setup_x11.sh

@@ -1,0 +1,35 @@
+# SSMI Example — independent compose stack
+# Adapted from ExistentialRobotics/SSMI-example with project bind-mount and
+# without privileged / xhost +.
+name: nbv_ssmi
+services:
+  ssmi:
+    build:
+      context: ./docker/ssmi
+      dockerfile: Dockerfile
+    image: nbv-ssmi:noetic
+    container_name: nbv_ssmi
+    runtime: nvidia
+    environment:
+      DISPLAY: ${DISPLAY}
+      XAUTHORITY: /tmp/.docker.xauth
+      QT_X11_NO_MITSHM: "1"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+      IGNITION_VERSION: fortress
+      ROS_MASTER_URI: http://localhost:11311
+      LIBGL_ALWAYS_SOFTWARE: ${LIBGL_ALWAYS_SOFTWARE:-0}
+    volumes:
+      - .:/workspace:rw
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTH_FILE:-/tmp/.docker.xauth.nbv}:/tmp/.docker.xauth:rw
+    devices:
+      - /dev/dri:/dev/dri
+    network_mode: host
+    ipc: host
+    stdin_open: true
+    tty: true
+    shm_size: "8gb"
+    working_dir: /workspace
+    command: ["sleep", "infinity"]
+    # Avoid privileged; Gazebo Fortress + NVIDIA via runtime + /dev/dri
