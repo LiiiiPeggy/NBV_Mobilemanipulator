@@ -105,3 +105,20 @@ Smoke test 用空/占位 octomap 与假 camera_pose，Action 状态 SUCCEEDED，
 - GUI：`rosrun gazebo_ros gazebo`；`GAZEBO_MASTER_URI` 默认 `11355` 避冲突。
 
 证据：`logs/fkie_warehouse_nbv/`，`data/metrics/fkie_warehouse_nbv/summary.txt`。
+
+---
+
+## 2026-10-22 AGX 接入 + Gazebo 进程堆积
+
+### 决策
+
+用用户 AGX（Ranger+CR10+AG95+D455）替代示意 moma；不改 agx 原 URDF，运行时生成 Gazebo 适配 URDF。
+
+### 根因：测试叠多个 gzserver
+
+`rosrun gazebo_ros gazebo` 会 fork `gzserver`/`gzclient`；只杀脚本 PID 会留孤儿。`fkie_stop_sim.sh` 若 `pkill` 自身 demo 脚本会自杀。  
+**修复**：启动前 `STOP_SIM_KEEP_PID=$$` 调用 stop；退出 `killall gzserver gzclient`；zombie 需 `compose down/up`。
+
+### 现状
+
+AGX 仓库场景感知/TF/OctoMap 已通；NBV 仍 `goals=0`（No frontiers / RRT 无法扩展）。证据：`logs/fkie_agx_warehouse_nbv/`。

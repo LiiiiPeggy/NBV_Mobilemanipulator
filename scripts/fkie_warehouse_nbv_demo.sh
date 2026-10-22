@@ -27,18 +27,26 @@ CAM_Y=-5.685
 CAM_Z=1.0
 CAM_PITCH=0.35
 
+# Session-local cleanup; also reap gzserver/gzclient forks
 cleanup() {
   set +e
-  echo "[warehouse-nbv] shutting down..."
-  rosnode kill -a >/dev/null 2>&1 || true
+  echo "[warehouse-nbv] shutting down this script's jobs + Gazebo..."
   kill $(jobs -p) >/dev/null 2>&1 || true
   sleep 1
-  killall -9 gzserver gzclient rviz 2>/dev/null || true
+  kill $(jobs -p) >/dev/null 2>&1 || true
+  killall -TERM gzserver gzclient 2>/dev/null || true
+  sleep 1
+  killall -9 gzserver gzclient 2>/dev/null || true
 }
 trap cleanup EXIT INT TERM
 
-killall -9 gzserver gzclient rviz 2>/dev/null || true
-sleep 1
+# Pre-start: stop prior FKIE Gazebo in this container (prevent process pile-up)
+if [ -x /workspace/scripts/fkie_stop_sim.sh ]; then
+  STOP_SIM_KEEP_PID=$$ bash /workspace/scripts/fkie_stop_sim.sh || true
+else
+  killall -9 gzserver gzclient rviz 2>/dev/null || true
+fi
+sleep 2
 
 echo "[warehouse-nbv] world=${WORLD}"
 echo "[warehouse-nbv] GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}"

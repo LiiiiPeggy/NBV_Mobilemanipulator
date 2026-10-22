@@ -70,6 +70,9 @@ def main():
     state = client.get_state()
     result = client.get_result()
     rospy.loginfo("Action state=%s", state)
+    if result is None:
+        rospy.logerr("Action finished with no result (state=%s, often LOST/preempted)", state)
+        sys.exit(5)
     n_goals = len(result.goals) if result.goals else 0
     rospy.loginfo(
         "result: complete_exploration=%s request_base_pose=%s goals=%d explored_boundary_id=%s",

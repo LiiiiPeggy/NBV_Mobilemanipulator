@@ -30,15 +30,15 @@
 | 项 | 说明 |
 |----|------|
 | FKIE 有效 NBV | 适配最小 world（非官方移动操作平台栈）；验证层级=规划调用成功 + 非空 goals，**不是**完整探索闭环/运动执行 |
-| FKIE 室内仓库可视化复现 | `scripts/fkie_warehouse_nbv_demo.sh` 可起 warehouse + 深度相机 + GUI；**Action SUCCEEDED 但 goals=0**（`FKIE_WAREHOUSE_NBV_PARTIAL_OR_FAIL`） |
+| FKIE 室内仓库可视化复现 | `scripts/fkie_warehouse_nbv_demo.sh` 可起 warehouse + 深度相机 + GUI；**Action SUCCEEDED 但 goals=0** |
+| **AGX + 仓库感知链路** | `scripts/fkie_agx_warehouse_nbv.sh`：整机 spawn、D455 depth=`32FC1`、单路 points2、TF/OctoMap 已通；**NBV 仍 goals=0** |
 | SSMI 规划质量 | 路径非空与官方 `New path published!` 已确认；路径质量/闭环运动未做定量验收 |
 | SSMI teleop | 无 TTY 下失败（预期） |
 
 ## 未完成 / 未验证
 
-- 仓库场景下 FKIE **非空 goals**（当前 frontiers/RRT 扩不开）
-- RViz 相机 Image 面板与示意机械臂模型接入尚未跑通验收
-- FKIE 官方平台栈完整探索闭环与运动执行（官方未开源整机 URDF）
+- AGX+仓库场景 FKIE **非空 goals**（frontiers/RRT 扩不开）
+- AGX 运动执行 / 自主探索闭环
 - REMANI / TopAY 运动后端接入
 - 4070 Laptop 环境复用验证
 - 任何**实机**部署

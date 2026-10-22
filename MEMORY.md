@@ -83,7 +83,15 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | 仓库 NBV goals=0（ROI 内） | frontiers/RRT 扩不开（地图/朝向/自由空间） | 待查；≠完整探索成功 |
 | Gazebo/RViz 无机械臂 | 官方未发布平台模型 | 需自备平台或示意模型 |
 | 分启 gzserver+gzclient | 双 `/gazebo` 抢 master | `rosrun gazebo_ros gazebo` 一体启动 |
+| 多次测试叠多个 gzserver | 未停旧仿真 / cleanup 未杀子进程 | 先 `scripts/fkie_stop_sim.sh`；zombie 则 recreate 容器 |
 | SSMI `/planner/path` 订阅不到 | 路径一次性发布、后订错过 | planner 启动即 recorder |
+
+## 8. AGX 适配（进行中）
+
+- 源码：`third_party/agx`（gitignore）；URDF `rangerboxcr10lidar_description/urdf/rangercr10lidar.urdf`。
+- 仿真适配：`configs/fkie/agx_adapt/` + `generate_gazebo_urdf.py`（去 mimic 插件、挂 D455 openni、别名 `turret_link`）。
+- 启动：`scripts/fkie_agx_warehouse_nbv.sh`；停仿：`scripts/fkie_stop_sim.sh`。
+- 已测：depth `32FC1`、RGB、points2 单发布者、TF、octomap；Action SUCCEEDED 但 **goals=0**。
 
 ## 6. 主动视角 / 运动后端（设计原则，实现多为待验证）
 

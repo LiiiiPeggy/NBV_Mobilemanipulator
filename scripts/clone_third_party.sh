@@ -23,5 +23,15 @@ clone_pin fkie_ddynamic_reconfigure https://github.com/fkie/fkie_ddynamic_reconf
 clone_pin fkie_environmental_measurements https://github.com/fkie/fkie_environmental_measurements.git 75d331770c4c43fc0247876a192e5dd6809cd759
 clone_pin SSMI-Example https://github.com/ExistentialRobotics/SSMI-example.git 750122b8dbb193dcf67af5429be6c8df3b3b462e
 
+# AGX whole-body description (Ranger + CR10 + AG95 + D455); pin to main tip at clone time
+if [ -d agx/.git ]; then
+  echo "exists agx; fetch..."
+  git -C agx fetch origin || true
+else
+  git clone https://github.com/LiiiiPeggy/agx.git agx
+fi
+echo "OK agx @ $(git -C agx rev-parse --short HEAD 2>/dev/null || echo unknown)"
+ln -sfn ../../third_party/agx/rangerboxcr10lidar_description "${ROOT}/ws_fkie/src/rangerboxcr10lidar_description"
+
 "${ROOT}/scripts/setup_fkie_ws.sh"
 echo "third_party ready"
