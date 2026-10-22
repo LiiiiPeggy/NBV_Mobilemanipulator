@@ -1,0 +1,169 @@
+{
+  "scene_id": "primitive_debug_seed42_aisle_safe_axis",
+  "scene_kind": "primitive_debug",
+  "seed": 42,
+  "frame_id": "world",
+  "notes": "Optical-axis validation spheres (aisle_safe) after D455 sensor pose fix.",
+  "objects": [
+    {
+      "instance_id": "obj_00",
+      "gazebo_name": "val_obj_00",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.361888033515359,
+        "y": -4.660243264217721,
+        "z": 2.220336460924631,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_01",
+      "gazebo_name": "val_obj_01",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.286208962802435,
+        "y": -4.578664005727215,
+        "z": 2.0785002778112682,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_02",
+      "gazebo_name": "val_obj_02",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.2181622113003243,
+        "y": -4.502632287937697,
+        "z": 1.9399765704540617,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_03",
+      "gazebo_name": "val_obj_03",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.0260659882395595,
+        "y": -4.416151473374217,
+        "z": 2.074587527653785,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_04",
+      "gazebo_name": "val_obj_04",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.555677555786435,
+        "y": -4.412320934788152,
+        "z": 2.189029279190024,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_05",
+      "gazebo_name": "val_obj_05",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.4799984850735104,
+        "y": -4.330741676297644,
+        "z": 2.0471930960766613,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_06",
+      "gazebo_name": "val_obj_06",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.2955345812235595,
+        "y": -4.2498084024351535,
+        "z": 2.185116529032541,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_07",
+      "gazebo_name": "val_obj_07",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.2198555105106355,
+        "y": -4.168229143944647,
+        "z": 2.0432803459191784,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_08",
+      "gazebo_name": "val_obj_08",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.7494670780575095,
+        "y": -4.16439860535858,
+        "z": 2.1577220974554177,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    },
+    {
+      "instance_id": "obj_09",
+      "gazebo_name": "val_obj_09",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -3.5573708549967447,
+        "y": -4.0779177907951,
+        "z": 2.292333054655141,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "scene_kind": "primitive_debug",
+      "ok": true
+    }
+  ]
+}

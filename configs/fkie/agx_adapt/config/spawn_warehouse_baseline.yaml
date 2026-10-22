@@ -1,0 +1,11 @@
+# Verified FKIE warehouse NBV regression spawn (goals=1 at 8810e5d / a728102).
+# DO NOT change casually — use spawn_warehouse_aisle_safe.yaml for clearance work.
+scene_id: warehouse_baseline
+world: configs/fkie/adapt_test/warehouse_icra_large_viz.world
+arm_pose: configs/fkie/agx_adapt/config/arm_view_pose.yaml
+spawn:
+  x: -5.36
+  y: -5.685
+  z: 0.36
+  yaw: 0.0
+notes: "Historical goals=1 pose; AABB overlaps shelves_high / nearby boxes — keep for regression only."

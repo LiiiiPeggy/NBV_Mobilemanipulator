@@ -1,0 +1,171 @@
+{
+  "scene_id": "primitive_debug_seed42",
+  "seed": 42,
+  "frame_id": "world",
+  "notes": "Color-sphere RGB-D debug set only \u2014 NOT YCB recognition. Do not overwrite with generate_object_scene.py.",
+  "objects": [
+    {
+      "instance_id": "obj_00",
+      "gazebo_name": "vis_obj_00",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -6.75,
+        "y": -7.15,
+        "z": 1.0,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_01",
+      "gazebo_name": "vis_obj_01",
+      "model": "primitive_sphere",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -6.5,
+        "y": -7.15,
+        "z": 1.05,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_02",
+      "gazebo_name": "vis_obj_02",
+      "model": "primitive_sphere",
+      "class_name": "banana",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -6.25,
+        "y": -7.15,
+        "z": 0.95,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_03",
+      "gazebo_name": "vis_obj_03",
+      "model": "primitive_sphere",
+      "class_name": "apple",
+      "difficulty": "easy",
+      "spawn": {
+        "x": -6.7,
+        "y": -6.9,
+        "z": 1.2,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_04",
+      "gazebo_name": "vis_obj_04",
+      "model": "primitive_sphere",
+      "class_name": "box",
+      "difficulty": "medium",
+      "spawn": {
+        "x": -6.45,
+        "y": -6.85,
+        "z": 1.15,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_05",
+      "gazebo_name": "vis_obj_05",
+      "model": "primitive_sphere",
+      "class_name": "box",
+      "difficulty": "medium",
+      "spawn": {
+        "x": -6.2,
+        "y": -6.95,
+        "z": 1.25,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_06",
+      "gazebo_name": "vis_obj_06",
+      "model": "primitive_sphere",
+      "class_name": "bowl",
+      "difficulty": "medium",
+      "spawn": {
+        "x": -6.8,
+        "y": -6.65,
+        "z": 0.85,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_07",
+      "gazebo_name": "vis_obj_07",
+      "model": "primitive_sphere",
+      "class_name": "can",
+      "difficulty": "hard",
+      "spawn": {
+        "x": -6.5,
+        "y": -6.6,
+        "z": 1.0,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_08",
+      "gazebo_name": "vis_obj_08",
+      "model": "primitive_sphere",
+      "class_name": "cone",
+      "difficulty": "hard",
+      "spawn": {
+        "x": -6.25,
+        "y": -6.65,
+        "z": 1.1,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    },
+    {
+      "instance_id": "obj_09",
+      "gazebo_name": "vis_obj_09",
+      "model": "primitive_sphere",
+      "class_name": "box",
+      "difficulty": "hard",
+      "spawn": {
+        "x": -6.6,
+        "y": -7.35,
+        "z": 1.3,
+        "yaw": 0.0
+      },
+      "source": "primitive",
+      "ok": true,
+      "msg": "ok"
+    }
+  ],
+  "furniture": [],
+  "occluders": [],
+  "scene_kind": "primitive_debug"
+}

@@ -1,0 +1,11 @@
+# Safe aisle spawn: shelf-side clearance computed from shelves_high AABB + box margins.
+# Facing shelf origin (-4.9,-5.0); base outside shelf/box footprints.
+scene_id: warehouse_aisle_safe
+world: configs/fkie/adapt_test/warehouse_icra_large_viz.world
+arm_pose: configs/fkie/agx_adapt/config/arm_view_pose.yaml
+spawn:
+  x: -2.10
+  y: -5.89
+  z: 0.36
+  yaw: 2.833   # ~162 deg, face shelf toward (-4.9,-5.0)
+notes: "along≈1.5m lat≈-2.53m in shelf frame; clearance search 2026-10-23."

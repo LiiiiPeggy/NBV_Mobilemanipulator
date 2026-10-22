@@ -10,7 +10,7 @@
 |----|------|------|
 | P0 整机不倾倒 | **通过** roll=0 pitch=0，z=0.36 | `data/metrics/fkie_agx_warehouse_nbv/model_pose.txt` |
 | P0 TF 单一权威 | **通过** world→base 静态 TF；单路 `/joint_states` | diag TF `world->base_link=(-5.36,-5.685,0.36)` |
-| P0 CamView 无 TF 遮挡 | **通过** 独立 `agx_camera.rviz`（无 TF/Marker） | `configs/fkie/agx_adapt/rviz/agx_camera.rviz` |
+| P0 CamView 无 TF 遮挡 | **通过**（现已合并为单 RViz：`agx_nbv.rviz` 用 Image 面板，Camera overlay 关闭） | `configs/fkie/agx_adapt/rviz/agx_nbv.rviz` |
 | P0 Gazebo 可见 AGX+货箱 | **通过** model `agx_ranger_cr10`；60 boxes | 运行时 inventory；`warehouse_icra_large_viz.world` |
 | P1 AGX 仓库非空 NBV | **通过** goals=1 | `FKIE_AGX_WAREHOUSE_NBV_OK`；GOAL `(-4.419,-6.198,1.609)` |
 | 最小 world 回归 | **通过** goals=2 | `FKIE_EFFECTIVE_NBV_OK goals=2` |
@@ -23,7 +23,7 @@
    **修复**：Mode A `<static>true</static>`；spawn `z=0.36`；`-J` + `set_model_configuration`；**唯一** `agx_joint_states_authority`；去掉 gazebo js/p3d 插件与静态 TF 竞争。
 
 2. **CamView 坐标轴**：`agx_nbv.rviz` 的 Camera 与 TF 同配置叠加。  
-   **修复**：拆成 `agx_debug.rviz`（TF/Octomap/RRT）与 `agx_camera.rviz`（仅 RGB/Depth/CamView）。
+   **修复**：曾拆成 `agx_debug` / `agx_camera`；现合并为 `agx_nbv.rviz`（3D 保留 TF，相机用 Image 面板避免坐标轴遮挡）。
 
 3. **货箱不可见**：原 world DAE 贴图易失败。  
    **沿用**：`warehouse_icra_large_viz.world`（实体盒材质）。

@@ -32,9 +32,9 @@ LOCAL = {
 
 def build_layout(seed, n_objects=10, fov_slots_path=None):
     rng = random.Random(seed)
-    # Table + objects around arm_observe_table look-at (~(-3.05,-6.37,0.86)).
-    # Default Mode A arm_view_pose remains for NBV; P3 uses temporary observation joints.
-    table_pose = {"x": -3.05, "y": -6.35, "z": 0.0, "yaw": 0.1}
+    # YCB/local objects on a table near aisle_safe spawn (~(-2.10,-5.89), yaw≈2.83 facing shelf).
+    # Separate from primitive_debug layouts (do not overwrite those).
+    table_pose = {"x": -2.55, "y": -6.55, "z": 0.0, "yaw": 0.2}
     table_top_z = 0.72
 
     pool = list(YCB.items()) + list(LOCAL.items())
@@ -43,18 +43,18 @@ def build_layout(seed, n_objects=10, fov_slots_path=None):
 
     objects = []
     slots = [
-        ("easy", -2.90, -6.20, table_top_z, 0.0),
-        ("easy", -3.10, -6.40, table_top_z, 0.25),
-        ("easy", -3.25, -6.25, table_top_z, -0.2),
-        ("medium", -2.85, -6.00, 1.00, 0.4),
-        ("medium", -3.30, -6.10, 1.15, -0.3),
-        ("medium", -2.95, -6.55, table_top_z, 0.8),
-        ("hard", -2.70, -6.70, 0.0, 0.1),
-        ("hard", -3.40, -6.75, 0.0, -0.6),
-        ("hard", -2.60, -6.10, 0.0, 0.5),
-        ("hard", -3.50, -5.95, 1.35, 0.0),
-        ("medium", -3.05, -6.30, table_top_z, 0.35),
-        ("easy", -3.15, -6.45, table_top_z, -0.1),
+        ("easy", -2.40, -6.40, table_top_z, 0.0),
+        ("easy", -2.55, -6.60, table_top_z, 0.25),
+        ("easy", -2.70, -6.45, table_top_z, -0.2),
+        ("medium", -2.35, -6.25, table_top_z, 0.4),
+        ("medium", -2.80, -6.30, table_top_z, -0.3),
+        ("medium", -2.50, -6.75, table_top_z, 0.8),
+        ("hard", -2.20, -6.90, 0.0, 0.1),
+        ("hard", -2.95, -6.95, 0.0, -0.6),
+        ("hard", -2.15, -6.20, 0.0, 0.5),
+        ("hard", -3.05, -6.15, 0.0, 0.0),
+        ("medium", -2.60, -6.50, table_top_z, 0.35),
+        ("easy", -2.65, -6.65, table_top_z, -0.1),
     ]
     if fov_slots_path:
         p = Path(fov_slots_path)
@@ -95,17 +95,18 @@ def build_layout(seed, n_objects=10, fov_slots_path=None):
             "model": "cardboard_occluder",
             "class_name": "occluder",
             "difficulty": "n/a",
-            "spawn": {"x": -3.25, "y": -6.55, "z": 0.35, "yaw": 0.7},
+            "spawn": {"x": -2.75, "y": -6.80, "z": 0.35, "yaw": 0.7},
             "source": "local",
             "size": [0.4, 0.08, 0.7],
         }
     ]
 
     layout = {
-        "scene_id": "indoor_objects_seed%d" % seed,
+        "scene_id": "ycb_indoor_seed%d" % seed,
+        "scene_kind": "ycb",
         "seed": seed,
         "frame_id": "world",
-        "notes": "Layout near AGX ROI; GT must be refreshed from Gazebo after spawn.",
+        "notes": "YCB/local models on table near aisle_safe spawn; GT from Gazebo after spawn. Not primitive_debug.",
         "furniture": [
             {
                 "instance_id": "table_01",
@@ -127,7 +128,7 @@ def main():
     ap.add_argument("--n-objects", type=int, default=10)
     ap.add_argument(
         "--out",
-        default="data/scenes/indoor_objects/layouts/seed42.json",
+        default="data/scenes/indoor_objects/ycb/layouts/seed42.json",
     )
     ap.add_argument(
         "--fov-slots",

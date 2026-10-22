@@ -86,15 +86,18 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | 多次测试叠多个 gzserver | 未停旧仿真 / cleanup 未杀子进程 | 先 `scripts/fkie_stop_sim.sh`；zombie 则 recreate 容器 |
 | SSMI `/planner/path` 订阅不到 | 路径一次性发布、后订错过 | planner 启动即 recorder |
 
-## 8. AGX 适配（Mode A 已验证）
+## 8. AGX 适配（Mode A 已验证 + 2026-10-23 几何修复）
 
 - 源码：`third_party/agx`（gitignore）；URDF `rangerboxcr10lidar_description/urdf/rangercr10lidar.urdf`。
-- Mode A（默认）：`<static>true</static>`；spawn `z≈0.36`；`-J` 臂姿；**唯一** `/joint_states`；静态 `world→base_link`；无 gazebo js/p3d。
+- Mode A（默认）：`<static>true</static>`；spawn `z≈0.36`；**臂关节须 bake 为 fixed**（`-J`/`set_model_configuration` 对 static 无效）；静态 `world→base_link`；无 gazebo js/p3d。
+- Spawn 配置（勿混用）：`SPAWN_PROFILE=baseline|aisle_safe` → `configs/fkie/agx_adapt/config/spawn_warehouse_*.yaml`；环境变量 `AGX_SPAWN_{X,Y,Z,YAW}` 可覆盖。baseline 与货架 OBB 重叠（仅作历史回归）；**aisle_safe** `(-2.10,-5.89,yaw=2.833)` OBB 无重叠。
+- **D455 传感器**：Gazebo depth 沿传感器 **+X** 看。`<pose>` 不得再用 optical 的 `(-π/2,0,-π/2)`（会相对 TF optical **+Z** 偏 90°）。正确：`d455_link` 上 `<pose>0 0 0 0 0 0</pose>` + `frameName=d455_depth_optical_frame`（link +X = optical +Z）。证据：`reports/d455_pointcloud_tf_debug.md`。
+- 定位默认 `--world-tf-mode tf`；`T_world_cam_calib.json` 仅历史调试，禁止再当权威外参。
 - Mode B：`--mode dynamic`（物理 + js/p3d），需后续控制器，**未验收**。
 - 启动：`scripts/fkie_agx_warehouse_nbv.sh`；停仿：`scripts/fkie_stop_sim.sh`。
-- RViz：`agx_debug.rviz`（TF/Octomap/NBV）与 `agx_camera.rviz`（无坐标轴遮挡）。
+- RViz：单窗口 `agx_nbv.rviz`（`DepthCloud_optical_frame` vs `Octomap_world_fused` 分开展示）。
 - Octomap：`configs/fkie/agx_adapt/launch/octomap_agx.launch`（max_range=5，filter_ground=false）。
-- 已测仓库 NBV：**goals=1**（`reports/fkie_agx_integration.md`）。
+- 仓库 NBV：历史 `goals=1` 在错误相机朝向下取得；**相机修复后** baseline/aisle_safe 均为 Action OK 且 `goals=0`/`complete_exploration=True`（待在正确几何下重测非空）。
 
 ## 6. 主动视角 / 运动后端（设计原则，实现多为待验证）
 
@@ -110,13 +113,13 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | 项 | 内容 |
 |----|------|
 | 对象资产 | `scripts/fetch_object_models.sh` → `third_party/gazebo_objects/gazebo_ycb`（gitignore）；本地 `configs/fkie/agx_adapt/models/{simple_table,traffic_cone,cardboard_occluder}` |
-| 布局/真值 | `scripts/generate_object_scene.py`（seed）、`spawn_object_scene.py`、`export_object_gt.py`；真值**仅**评测器用 |
-| 感知 | `scripts/perceive_rgbd_objects.py`（depth/color/yolo）；Mode A 定位需 `--world-tf-mode calib` + `T_world_cam_calib.json` |
-| 评测 | `scripts/evaluate_object_discovery.py`；预实验阈值 **0.35 m**（正式实验前冻结，勿事后调） |
-| REMANI 接口 | `/ee_goal`=`geometry_msgs/PoseStamped`（world）；`scripts/nbv_to_remani_ee_goal.py`：`T_w_ee = T_w_cam * inv(T_ee_cam)` |
+| 布局/真值 | 分目录：`primitive_debug/`（彩色球）与 `ycb/`（`generate_object_scene.py`）；`export_object_gt.py` 真值仅评测用 |
+| 感知 | `perceive_rgbd_objects.py`（depth/color/yolo）；默认 `--world-tf-mode tf` |
+| 评测 | `evaluate_object_discovery.py`；min_loop 正式默认 **0.15 m**，并报告 0.10/0.35 诊断；勿事后放宽 |
+| REMANI 接口 | `/ee_goal`=`geometry_msgs/PoseStamped`（world）；`nbv_to_remani_ee_goal.py` |
 | WBC 克隆 | `third_party/wbc`（gitignore），分支 `remani-real-implementation` |
 
-**Mode A 关键约束（待 Mode B 解决）**：`<static>true>` 后 Gazebo 臂关节**冻结**；`SetModelConfiguration` 报 success 也不改 Link6。`/joint_states` TF 与 Gazebo D455 **不一致**。可见物体摆放必须以 Gazebo 相机视锥为准（经验 ROI 约 `(-6.5,-7.0,1.0)`）。
+**Mode A 约束**：static 冻结关节 → 须 URDF bake；连杆合并后用 model×TF 与 gripper tip 校验。相机朝向已与 optical TF 对齐后，物体须落在真实视锥（光轴探针/GT 反投影），禁止用错误 TF 硬塞物体。
 
 ## 8. 禁止轻易改动的已验证点
 

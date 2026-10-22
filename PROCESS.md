@@ -177,3 +177,31 @@ Mode A URDF `<static>true>` 冻结 Gazebo 关节。`/joint_states` 驱动的 TF�
 
 thresh=0.35 m：tp=2，unique_recall=0.2，precision=0.125，mean_err≈0.178 m。  
 证据：`reports/indoor_objects_min_loop.md`，`reports/indoor_objects_shots/`。
+
+---
+
+## 2026-10-23 几何 / TF / 点云修复
+
+### 根因：baseline spawn 在货架内
+
+`(-5.36,-5.685)` 与 `Shelves high` + 货箱 OBB 重叠。世界 AABB 对长货架过保守。  
+**修复**：`SPAWN_PROFILE` + `spawn_warehouse_{baseline,aisle_safe}.yaml`；间隙用 OBB/SAT（`check_agx_spawn_clearance.py`）。baseline 保留作历史配置，默认改 aisle_safe。
+
+### 根因：Mode A 下 Gazebo 臂 ≠ TF
+
+`<static>true>` 忽略关节重配置。  
+**修复**：`generate_gazebo_urdf.py --arm-pose` 将 CR10 关节 bake 为 fixed；gripper tip TF↔Gazebo 误差 ~1e-6 m。
+
+### 根因：点云相对 TF「歪 90°」
+
+Gazebo depth 沿传感器 **+X**；旧 `<pose>… -π/2 0 -π/2` 把传感器系叠到 optical 上 → 视线沿 optical +X，而 TF 以 +Z 为前向（夹角 90°）。探针：TF 光轴上绿球不可见。  
+**修复**：传感器 pose 改 identity（挂在 `d455_link`）；修正后绿球落在图像中心、深度≈1.25 m。  
+几何定位 median_err≈0.069 m（`gt_depth_tf_localization.json`）。弃用 calib 作默认。
+
+### 后果：仓库 NBV goals
+
+修复相机后 baseline 与 aisle_safe 均 `goals=0` + `complete_exploration=True`。历史 `goals=1` 在错误朝向下取得，不能再当几何真理。需在正确相机下重测 FKIE。
+
+### 场景分离
+
+`primitive_debug/` vs `ycb/`；min_loop `SCENE_KIND` + 正式 `DIST_THRESH=0.15`。

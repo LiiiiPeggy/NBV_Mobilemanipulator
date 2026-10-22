@@ -36,7 +36,10 @@ COLORS = [
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--out-layout", default="/data/scenes/indoor_objects/layouts/seed42.json")
+    ap.add_argument(
+        "--out-layout",
+        default="/workspace/data/scenes/indoor_objects/primitive_debug/layouts/seed42.json",
+    )
     ap.add_argument("--n", type=int, default=10)
     args = ap.parse_args()
 

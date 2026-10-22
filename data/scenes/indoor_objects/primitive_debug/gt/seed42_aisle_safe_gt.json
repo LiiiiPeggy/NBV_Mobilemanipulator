@@ -1,0 +1,279 @@
+{
+  "scene_id": "primitive_debug_seed42_aisle_safe_axis",
+  "scene_kind": "primitive_debug",
+  "seed": 42,
+  "source": "gazebo",
+  "n_objects": 10,
+  "objects": [
+    {
+      "instance_id": "obj_00",
+      "gazebo_name": "val_obj_00",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.36189,
+        "y": -4.66024,
+        "z": 2.22034,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.36189,
+        -4.66024,
+        2.22034
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_01",
+      "gazebo_name": "val_obj_01",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.28621,
+        "y": -4.57866,
+        "z": 2.0785,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.28621,
+        -4.57866,
+        2.0785
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_02",
+      "gazebo_name": "val_obj_02",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.21816,
+        "y": -4.50263,
+        "z": 1.93998,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.21816,
+        -4.50263,
+        1.93998
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_03",
+      "gazebo_name": "val_obj_03",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.02607,
+        "y": -4.41615,
+        "z": 2.07459,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.02607,
+        -4.41615,
+        2.07459
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_04",
+      "gazebo_name": "val_obj_04",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.55568,
+        "y": -4.41232,
+        "z": 2.18903,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.55568,
+        -4.41232,
+        2.18903
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_05",
+      "gazebo_name": "val_obj_05",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.48,
+        "y": -4.33074,
+        "z": 2.04719,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.48,
+        -4.33074,
+        2.04719
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_06",
+      "gazebo_name": "val_obj_06",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.29553,
+        "y": -4.24981,
+        "z": 2.18512,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.29553,
+        -4.24981,
+        2.18512
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_07",
+      "gazebo_name": "val_obj_07",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.21986,
+        "y": -4.16823,
+        "z": 2.04328,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.21986,
+        -4.16823,
+        2.04328
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_08",
+      "gazebo_name": "val_obj_08",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.74947,
+        "y": -4.1644,
+        "z": 2.15772,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.74947,
+        -4.1644,
+        2.15772
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_09",
+      "gazebo_name": "val_obj_09",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.55737,
+        "y": -4.07792,
+        "z": 2.29233,
+        "qx": 0,
+        "qy": 0,
+        "qz": 0,
+        "qw": 1,
+        "yaw": 0
+      },
+      "center_xyz": [
+        -3.55737,
+        -4.07792,
+        2.29233
+      ],
+      "aabb_size_xyz": [
+        0.14,
+        0.14,
+        0.14
+      ],
+      "frame_id": "world"
+    }
+  ]
+}

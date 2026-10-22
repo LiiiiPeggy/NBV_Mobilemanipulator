@@ -20,24 +20,41 @@ export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:${LD_LIBRARY
 export GAZEBO_PLUGIN_PATH="/opt/ros/noetic/lib:/usr/lib/x86_64-linux-gnu/gazebo-11/plugins:${GAZEBO_PLUGIN_PATH:-}"
 
 AGX_MODE="${AGX_MODE:-static}"
+# Spawn profile: baseline (goals=1 regression) | aisle_safe (no shelf/box overlap)
+SPAWN_PROFILE="${SPAWN_PROFILE:-aisle_safe}"
+SPAWN_CFG="${SPAWN_CFG:-/workspace/configs/fkie/agx_adapt/config/spawn_warehouse_${SPAWN_PROFILE}.yaml}"
 LOGDIR=/workspace/logs/fkie_agx_warehouse_nbv
 EVDIR=/workspace/data/metrics/fkie_agx_warehouse_nbv
 SHOTDIR=/workspace/reports/fkie_agx_integration_shots
 mkdir -p "${LOGDIR}" "${EVDIR}" "${SHOTDIR}"
 
-WORLD=/workspace/configs/fkie/adapt_test/warehouse_icra_large_viz.world
 URDF_SRC=/workspace/third_party/agx/rangerboxcr10lidar_description/urdf/rangercr10lidar.urdf
 URDF_GZ=/workspace/configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo.urdf
-POSE_YAML=/workspace/configs/fkie/agx_adapt/config/arm_view_pose.yaml
 PLANNER_YAML=/workspace/configs/fkie/agx_adapt/config/nbv_planner_agx_warehouse.yaml
-RVIZ_DBG=/workspace/configs/fkie/agx_adapt/rviz/agx_debug.rviz
-RVIZ_CAM=/workspace/configs/fkie/agx_adapt/rviz/agx_camera.rviz
+RVIZ_CFG=/workspace/configs/fkie/agx_adapt/rviz/agx_nbv.rviz
 
-# Wheel center ≈ base_z - 0.258; radius ≈ 0.10 → base_z ≈ 0.36 on ground
-RX=-5.36
-RY=-5.685
-RZ="${AGX_SPAWN_Z:-0.36}"
-RYAW=0.0
+# Load spawn + arm pose from single YAML profile (env AGX_SPAWN_* overrides)
+eval "$(python3 - <<PY
+import yaml
+from pathlib import Path
+cfg = yaml.safe_load(Path("${SPAWN_CFG}").read_text())
+sp = cfg["spawn"]
+world = cfg.get("world", "configs/fkie/adapt_test/warehouse_icra_large_viz.world")
+pose = cfg.get("arm_pose", "configs/fkie/agx_adapt/config/arm_view_pose.yaml")
+print("WORLD=/workspace/%s" % world)
+print("POSE_YAML=/workspace/%s" % pose)
+print("SCENE_ID=%s" % cfg.get("scene_id", "unknown"))
+print("RX=%s" % float(sp["x"]))
+print("RY=%s" % float(sp["y"]))
+print("RZ=%s" % float(sp["z"]))
+print("RYAW=%s" % float(sp["yaw"]))
+PY
+)"
+# Optional env overrides (same names across scripts)
+RX="${AGX_SPAWN_X:-$RX}"
+RY="${AGX_SPAWN_Y:-$RY}"
+RZ="${AGX_SPAWN_Z:-$RZ}"
+RYAW="${AGX_SPAWN_YAW:-$RYAW}"
 
 PIDS=()
 register() { PIDS+=("$1"); }
@@ -57,12 +74,14 @@ trap cleanup EXIT INT TERM
 STOP_SIM_KEEP_PID=$$ bash /workspace/scripts/fkie_stop_sim.sh || true
 sleep 2
 
-echo "[agx-nbv] mode=${AGX_MODE} spawn_z=${RZ}"
+echo "[agx-nbv] mode=${AGX_MODE} profile=${SPAWN_PROFILE} scene=${SCENE_ID} spawn=(${RX},${RY},${RZ},yaw=${RYAW})"
 python3 /workspace/configs/fkie/agx_adapt/scripts/generate_gazebo_urdf.py \
-  --src "${URDF_SRC}" --dst "${URDF_GZ}" --mode "${AGX_MODE}"
+  --src "${URDF_SRC}" --dst "${URDF_GZ}" --mode "${AGX_MODE}" \
+  --arm-pose "${POSE_YAML}"
 
 test -f "${WORLD}"
 test -f "${URDF_GZ}"
+test -f "${POSE_YAML}"
 test -d /workspace/third_party/gazebo_models/shelves_high/meshes
 
 if ! timeout 2 rostopic list >/dev/null 2>&1; then
@@ -91,11 +110,11 @@ rospy.set_param("/robot_description", xml)
 print("robot_description bytes", len(xml))
 PY
 
-# Build -J args from pose yaml
-mapfile -t JARGS < <(python3 - <<'PY'
+# Build -J args from pose yaml (Mode A also bakes these into fixed URDF joints)
+mapfile -t JARGS < <(python3 - <<PY
 import yaml
 from pathlib import Path
-pose = yaml.safe_load(Path("/workspace/configs/fkie/agx_adapt/config/arm_view_pose.yaml").read_text())
+pose = yaml.safe_load(Path("${POSE_YAML}").read_text())
 for k, v in pose.items():
     print("-J"); print(k); print(float(v))
 PY
@@ -109,32 +128,35 @@ rosrun gazebo_ros spawn_model -urdf -file "${URDF_GZ}" -model agx_ranger_cr10 \
   echo "spawn failed:"; cat "${LOGDIR}/spawn_robot.log"; exit 2
 }
 
-# Also set configuration (helps when -J ignored)
-python3 - <<'PY' >"${LOGDIR}/set_arm_pose.log" 2>&1
+# Mode A: arm joints are fixed in URDF (baked). set_model_configuration is a no-op for static.
+# Still call for dynamic mode / logging.
+python3 - <<PY >"${LOGDIR}/set_arm_pose.log" 2>&1
 import rospy, yaml
 from gazebo_msgs.srv import SetModelConfiguration
 from pathlib import Path
 rospy.init_node("set_agx_arm_pose")
-pose = yaml.safe_load(Path("/workspace/configs/fkie/agx_adapt/config/arm_view_pose.yaml").read_text())
+pose = yaml.safe_load(Path("${POSE_YAML}").read_text())
 rospy.wait_for_service("/gazebo/set_model_configuration", timeout=30)
 srv = rospy.ServiceProxy("/gazebo/set_model_configuration", SetModelConfiguration)
 names = list(pose.keys())
 pos = [float(pose[n]) for n in names]
 resp = srv("agx_ranger_cr10", "", names, pos)
 print("success", resp.success, "status", resp.status_message)
+print("note: Mode A static ignores joint reconfiguration; pose baked into URDF fixed joints")
 PY
 
-# Single authoritative joint_states in Mode A
-python3 - <<'PY' >"${LOGDIR}/joint_states.log" 2>&1 &
+# Wheel joint_states only (arm is fixed in Mode A URDF → RSP uses URDF origins)
+python3 - <<PY >"${LOGDIR}/joint_states.log" 2>&1 &
 import rospy, yaml
 from sensor_msgs.msg import JointState
 from pathlib import Path
 rospy.init_node("agx_joint_states_authority")
-pose = yaml.safe_load(Path("/workspace/configs/fkie/agx_adapt/config/arm_view_pose.yaml").read_text())
+pose = yaml.safe_load(Path("${POSE_YAML}").read_text())
 extras = [
   "fr_steering_joint","fr_wheel_joint","fl_steering_wheel_joint","fl_wheel_joint",
   "rl_steering_wheel_joint","rl_wheel_joint","rr_steering_wheel_joint","rr_wheel_joint",
 ]
+# Keep publishing arm names for tools that expect them; RSP ignores fixed-joint names.
 pub = rospy.Publisher("/joint_states", JointState, queue_size=1, latch=False)
 rate = rospy.Rate(50)
 while not rospy.is_shutdown():
@@ -234,9 +256,8 @@ rosrun fkie_nbv_planner nbvplanner_node __ns:=robot __name:=fkie_nbv_planner \
   octomap:=octomap_full >"${LOGDIR}/planner.log" 2>&1 &
 register $!
 
-rviz -d "${RVIZ_DBG}" >"${LOGDIR}/rviz_debug.log" 2>&1 &
-register $!
-rviz -d "${RVIZ_CAM}" >"${LOGDIR}/rviz_camera.log" 2>&1 &
+# Single RViz: 3D (TF/Octomap/NBV) + Image RGB/Depth (no TF overlay on camera panels)
+rviz -d "${RVIZ_CFG}" >"${LOGDIR}/rviz.log" 2>&1 &
 register $!
 
 echo "[agx-nbv] waiting for sensors..."
@@ -330,7 +351,7 @@ fi
 
 echo "============================================================"
 echo " AGX Mode A running. gzserver/gzclient should be 1 each."
-echo " RViz: agx_debug + agx_camera (no TF in CamView)."
+echo " RViz: single agx_nbv.rviz (3D + Image RGB/Depth)."
 echo " Evidence: ${EVDIR}/"
 echo "============================================================"
 while true; do sleep 3600; done

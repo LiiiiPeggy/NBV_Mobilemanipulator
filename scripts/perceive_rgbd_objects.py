@@ -311,7 +311,8 @@ class Perceiver(object):
         except Exception as e:
             rospy.logwarn("TF fail %s", e)
             return None
-        if pw[2] < -0.05 or pw[2] > 2.5:
+        # Warehouse shelves / raised camera views can place valid centers above 2.5 m.
+        if pw[2] < -0.05 or pw[2] > 3.5:
             return None
         return {
             "class_name": det["class_name"],
@@ -360,8 +361,8 @@ def main():
     ap.add_argument(
         "--world-tf-mode",
         choices=["tf", "gazebo_link6", "calib"],
-        default="calib",
-        help="calib: Mode A empirical T_world_cam; gazebo_link6/tf alternatives",
+        default="tf",
+        help="tf: ROS TF chain (preferred after Mode A joint bake); calib deprecated debug-only",
     )
     ap.add_argument(
         "--calib-json",

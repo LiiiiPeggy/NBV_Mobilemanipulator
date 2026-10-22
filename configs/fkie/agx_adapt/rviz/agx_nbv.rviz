@@ -23,38 +23,51 @@ Visualization Manager:
       Name: TF
       Enabled: true
       Frame Timeout: 15
-      Marker Scale: 0.4
+      Marker Scale: 0.35
       Show Axes: true
       Show Names: false
+      Frames:
+        All Enabled: false
+        base_link: {Value: true}
+        turret_link: {Value: true}
+        d455_depth_optical_frame: {Value: true}
+        d455_color_optical_frame: {Value: true}
+        world: {Value: true}
+    # Image panels do not overlay TF/markers (unlike Camera display).
     - Class: rviz/Image
       Name: RGB
       Enabled: true
       Image Topic: /realsense/rgb/image_raw
       Transport Hint: raw
+      Normalize Range: true
     - Class: rviz/Image
       Name: Depth
       Enabled: true
       Image Topic: /realsense/depth/image_raw
       Transport Hint: raw
+      Normalize Range: true
+    # Disabled: Camera overlays 3D TF axes onto the image (reason we once split windows).
     - Class: rviz/Camera
       Name: CamView
-      Enabled: true
+      Enabled: false
       Image Topic: /realsense/rgb/image_raw
       Transport Hint: raw
     - Class: rviz/PointCloud2
-      Name: DepthCloud
+      Name: DepthCloud_optical_frame
       Enabled: true
       Topic: /realsense/depth/points2
       Size (m): 0.02
       Style: Points
       Color Transformer: AxisColor
       Queue Size: 5
+      # Live D455 depth (frame d455_depth_optical_frame) — not OctoMap
     - Class: octomap_rviz_plugin/ColorOccupancyGrid
-      Name: Octomap
+      Name: Octomap_world_fused
       Enabled: true
       Octomap Topic: /robot/octomap_full
       Queue Size: 2
       Voxel Alpha: 0.75
+      # Fused occupancy — distinct from single-frame DepthCloud
     - Class: rviz/MarkerArray
       Name: RRT
       Enabled: true
