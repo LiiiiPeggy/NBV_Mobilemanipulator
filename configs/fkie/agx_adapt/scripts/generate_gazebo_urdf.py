@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""Generate Gazebo-adapted URDF from AGX original without modifying the source.
+"""Generate Gazebo-adapted URDF from AGX original (does not modify source).
 
-- Removes roboticsgroup mimic plugins (often missing in the FKIE image).
-- Appends D455 depth camera ROS plugin on d455_link.
-- Adds joint_state + p3d plugins and FKIE frame aliases.
+Modes:
+  static  — Mode A: <static>true</static>, camera only (no js/p3d plugins).
+            Arm pose is applied at spawn via -J + joint_state_publisher.
+  dynamic — Mode B: physics + gazebo joint_state + p3d (needs effort controllers later).
 """
 from __future__ import print_function
 import argparse
 import re
 from pathlib import Path
 
-CAMERA_PLUGIN = """
-  <!-- ADAPTATION (nbv_agx): D455 depth for FKIE octomap; topics match octomap_server.launch -->
+CAMERA_BLOCK = """
+  <!-- ADAPTATION: D455 depth → /realsense/* for FKIE octomap -->
   <gazebo reference="d455_link">
     <sensor name="d455_depth" type="depth">
-      <!-- Align Gazebo camera (+X) with ROS optical frame of D455 -->
       <pose>0 0 0 -1.57079632679 0 -1.57079632679</pose>
       <always_on>true</always_on>
       <update_rate>10</update_rate>
@@ -26,7 +26,7 @@ CAMERA_PLUGIN = """
           <format>R8G8B8</format>
         </image>
         <clip>
-          <near>0.1</near>
+          <near>0.15</near>
           <far>8.0</far>
         </clip>
       </camera>
@@ -40,7 +40,7 @@ CAMERA_PLUGIN = """
         <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
         <pointCloudTopicName>depth/points</pointCloudTopicName>
         <frameName>d455_depth_optical_frame</frameName>
-        <pointCloudCutoff>0.2</pointCloudCutoff>
+        <pointCloudCutoff>0.30</pointCloudCutoff>
         <pointCloudCutoffMax>7.5</pointCloudCutoffMax>
         <distortionK1>0.0</distortionK1>
         <distortionK2>0.0</distortionK2>
@@ -55,8 +55,9 @@ CAMERA_PLUGIN = """
       </plugin>
     </sensor>
   </gazebo>
+"""
 
-  <!-- Publish joint states from Gazebo -->
+DYNAMIC_PLUGINS = """
   <gazebo>
     <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
       <robotNamespace></robotNamespace>
@@ -78,8 +79,16 @@ CAMERA_PLUGIN = """
       <rpyOffsets>0 0 0</rpyOffsets>
     </plugin>
   </gazebo>
+"""
 
-  <!-- FKIE aliases: sampling frame + namespaced base -->
+STATIC_TAG = """
+  <!-- Mode A: static freeze — perception/NBV only; NOT whole-body motion control -->
+  <gazebo>
+    <static>true</static>
+  </gazebo>
+"""
+
+ALIASES = """
   <link name="turret_link"/>
   <joint name="cr10_base_to_turret_alias" type="fixed">
     <parent link="cr10_base_link"/>
@@ -97,48 +106,43 @@ CAMERA_PLUGIN = """
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument(
-        "--src",
-        default="/workspace/third_party/agx/rangerboxcr10lidar_description/urdf/rangercr10lidar.urdf",
-    )
-    ap.add_argument(
-        "--dst",
-        default="/workspace/configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo.urdf",
-    )
+    ap.add_argument("--src", required=True)
+    ap.add_argument("--dst", required=True)
+    ap.add_argument("--mode", choices=["static", "dynamic"], default="static")
     args = ap.parse_args()
-    src = Path(args.src)
-    dst = Path(args.dst)
-    text = src.read_text()
 
-    # Drop mimic joint plugins block (requires roboticsgroup_gazebo_plugins)
+    text = Path(args.src).read_text()
     text = re.sub(
         r"<gazebo>\s*<!-- loading plugin: mimic joints[\s\S]*?</gazebo>",
-        "<!-- ADAPTATION: mimic plugins removed (not in FKIE image) -->",
+        "<!-- ADAPTATION: mimic plugins removed -->",
         text,
         count=1,
     )
-    # Also strip any remaining roboticsgroup plugins
     text = re.sub(
         r'\s*<plugin[^>]*libroboticsgroup_gazebo_mimic_joint_plugin\.so[\s\S]*?</plugin>',
         "",
         text,
     )
 
-    if "</robot>" not in text:
-        raise SystemExit("no </robot> in source URDF")
-    text = text.replace("</robot>", CAMERA_PLUGIN + "\n</robot>", 1)
+    if args.mode == "static":
+        extra = STATIC_TAG + CAMERA_BLOCK + ALIASES
+    else:
+        extra = DYNAMIC_PLUGINS + CAMERA_BLOCK + ALIASES
 
-    # Rename slightly so it is clear this is generated
+    if "</robot>" not in text:
+        raise SystemExit("no </robot>")
+    text = text.replace("</robot>", extra + "\n</robot>", 1)
     text = re.sub(
         r'<robot\s+name="[^"]+"',
-        '<robot name="rangercr10lidar_gazebo"',
+        '<robot name="rangercr10lidar_gazebo_%s"' % args.mode,
         text,
         count=1,
     )
 
+    dst = Path(args.dst)
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(text)
-    print("Wrote", dst, "bytes", dst.stat().st_size)
+    print("Wrote", dst, "mode", args.mode, "bytes", dst.stat().st_size)
 
 
 if __name__ == "__main__":

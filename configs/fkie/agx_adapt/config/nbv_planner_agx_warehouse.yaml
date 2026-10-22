@@ -1,21 +1,20 @@
-# FKIE planner params for AGX + warehouse ROI (based on freespace_fast).
+# FKIE params for AGX Mode A + warehouse (validated heights vs CR10 reach ~0.3–1.6m)
 num_frontiers: 10
-frontiers_N_max_tries: 50
+frontiers_N_max_tries: 80
 max_num_cached_points_to_keep: 50
 min_gain_frontier: -10000.0
 free_space_frontier: true
 
 planner_boundary_id: 0
-# AGX base ~0.2m; D455 on gripper can reach ~0.5–1.6m
-arm_height_min: 0.3
-arm_height_max: 1.8
+arm_height_min: 0.35
+arm_height_max: 1.65
 self_collision_height: 2.2
-arm_goal_range: 1.5
+arm_goal_range: 1.4
 raycast_dr: 0.1
 raycast_dphi: 10
 raycast_dtheta: 10
 gain_r_min: 0.3
-gain_r_max: 1.5
+gain_r_max: 5.0
 camera_hfov: 86.0
 camera_vfov: 57.0
 visited_cells_grid_size: 1.0
@@ -31,10 +30,10 @@ optimize_path_using_sampling: false
 optimize_path_remove_points_inside_bbx: true
 optimize_path_shift_points_towards_obstacles: false
 
-rrt_tree_length: 600
-rrt_N_max_tries: 50
+rrt_tree_length: 800
+rrt_N_max_tries: 80
 rrt_sampling_radius: 30.0
-rrt_collision_cyl_radius: 0.35
+rrt_collision_cyl_radius: 0.30
 rrt_sample_threshold_distance: 0.4
 rrt_step_size: 0.5
 sample_in_unknown: false
@@ -50,7 +49,6 @@ utility_max_value_free_space: 1.70
 utility_max_value_measurement: 500
 utility_max_value_visited_cell: 1.0
 
-# Same ROI as freespace_fast (warehouse aisle near shelves)
 planner_boundary_x: [-8.3603, -2.3603, -2.3603, -8.3603]
 planner_boundary_y: [-2.6852, -2.6852, -8.6852, -8.6852]
 robot_sampling_frame: turret_link

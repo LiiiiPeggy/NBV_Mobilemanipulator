@@ -1,9 +1,10 @@
-# CR10 viewing pose for warehouse ROI (radians). Tuned for D455 looking into shelves.
-# ADAPTATION only — not a WBC trajectory.
-cr10_joint1: 0.0
-cr10_joint2: -0.6
-cr10_joint3: 1.0
+# Mode A viewing pose (rad). Camera toward warehouse shelves/boxes near ROI.
+# Robot base ~(-5.36,-5.685); shelves ~(-4.9,-5.0); boxes slightly NE.
+# NOT a WBC trajectory — fixed configuration for perception / NBV.
+cr10_joint1: 0.35
+cr10_joint2: -0.85
+cr10_joint3: 1.25
 cr10_joint4: 0.0
-cr10_joint5: 0.8
+cr10_joint5: 0.55
 cr10_joint6: 0.0
 gripper_finger1_joint: 0.0

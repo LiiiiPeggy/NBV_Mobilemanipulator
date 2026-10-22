@@ -119,6 +119,31 @@ Smoke test 用空/占位 octomap 与假 camera_pose，Action 状态 SUCCEEDED，
 `rosrun gazebo_ros gazebo` 会 fork `gzserver`/`gzclient`；只杀脚本 PID 会留孤儿。`fkie_stop_sim.sh` 若 `pkill` 自身 demo 脚本会自杀。  
 **修复**：启动前 `STOP_SIM_KEEP_PID=$$` 调用 stop；退出 `killall gzserver gzclient`；zombie 需 `compose down/up`。
 
-### 现状
+### 现状（已更新）
 
-AGX 仓库场景感知/TF/OctoMap 已通；NBV 仍 `goals=0`（No frontiers / RRT 无法扩展）。证据：`logs/fkie_agx_warehouse_nbv/`。
+见下一节：Mode A 修复后仓库 **goals=1**。
+
+---
+
+## 2026-10-22 AGX Mode A：倾倒修复与仓库非空 NBV
+
+### 根因：倾倒 / RViz 姿态错乱
+
+1. spawn `z=0.05` 过低（轮心相对 base≈−0.258）→ 穿地弹起。  
+2. Gazebo joint_state 插件与 fallback `/joint_states` **双发布**覆盖。  
+3. `set_model_configuration` 一次性置角无保持力矩 → 动态模式下臂塌。  
+4. p3d 与静态 TF 竞争 world→base。
+
+### 修复（Mode A）
+
+- URDF 生成加 `<static>true</static>`，去掉 js/p3d 插件。  
+- spawn `z=0.36` + `-J` 观测构型；单一 joint_states 发布器；静态 TF。  
+- RViz 拆 debug / camera；octomap 加长感知距离。
+
+### 结果
+
+- 直立 roll=pitch=0；AGX+60 boxes 在 world。  
+- 仓库 Action **goals=1**，GOAL `(-4.419,-6.198,1.609)`。  
+- 最小 world 回归 **goals=2**。  
+
+证据：`reports/fkie_agx_integration.md`，`data/metrics/fkie_agx_warehouse_nbv/`，`logs/fkie_effective_nbv_regression/`。

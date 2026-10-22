@@ -1,0 +1,48 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+  - Class: rviz/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/Image
+      Name: RGB
+      Enabled: true
+      Image Topic: /realsense/rgb/image_raw
+      Transport Hint: raw
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Normalize Range: true
+    - Class: rviz/Image
+      Name: Depth
+      Enabled: true
+      Image Topic: /realsense/depth/image_raw
+      Transport Hint: raw
+      Normalize Range: true
+    # CamView: only RGB image — no TF/Marker/PointCloud in this config at all
+    - Class: rviz/Camera
+      Name: CamView
+      Enabled: true
+      Image Topic: /realsense/rgb/image_raw
+      Transport Hint: raw
+  Enabled: true
+  Global Options:
+    Background Color: 20; 20; 20
+    Fixed Frame: world
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 5
+      Focal Point: {X: 0, Y: 0, Z: 0}
+Window Geometry:
+  Height: 720
+  Width: 1100
+  X: 50
+  Y: 50

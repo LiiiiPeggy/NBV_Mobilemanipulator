@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!-- AGX octomap: longer range than default FKIE 1.5m for warehouse shelves -->
+<launch>
+  <arg name="robot_ns" default="robot"/>
+  <node name="octomap_server" pkg="octomap_server" type="octomap_server_node" ns="$(arg robot_ns)" clear_params="true">
+    <param name="frame_id" type="string" value="world"/>
+    <param name="resolution" value="0.1"/>
+    <param name="base_frame_id" value="base_link"/>
+    <param name="sensor_model/max_range" value="5.0"/>
+    <param name="pointcloud_min_z" value="-0.5"/>
+    <param name="pointcloud_max_z" value="2.5"/>
+    <param name="filter_ground" type="bool" value="false"/>
+    <param name="occupancy_min_z" value="0.05"/>
+    <param name="occupancy_max_z" value="2.2"/>
+    <remap from="cloud_in" to="/realsense/depth/points2"/>
+  </node>
+</launch>

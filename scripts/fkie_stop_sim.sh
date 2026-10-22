@@ -61,8 +61,16 @@ sleep 1
 left=$(pgrep -a gzserver 2>/dev/null || true)
 left2=$(pgrep -a gzclient 2>/dev/null || true)
 # Defunct (zombie) entries may remain until parent exits; report but treat as cleaned if only Z
-alive_server=$(ps -eo pid,stat,cmd | awk '/[g]zserver/ && $2 !~ /Z/ {print}' || true)
-alive_client=$(ps -eo pid,stat,cmd | awk '/[g]zclient/ && $2 !~ /Z/ {print}' || true)
+# Match real binaries only (ignore bash/grep lines that mention gzserver)
+alive_server=$(ps -eo pid,stat,cmd | awk '$NF ~ /(^|\/)gzserver$/ || $3 ~ /(^|\/)gzserver$/ { if ($2 !~ /Z/) print }' || true)
+alive_client=$(ps -eo pid,stat,cmd | awk '$NF ~ /(^|\/)gzclient$/ || $3 ~ /(^|\/)gzclient/ { if ($2 !~ /Z/) print }' || true)
+# Fallback: pgrep -x
+if [ -z "${alive_server}" ]; then
+  alive_server=$(pgrep -a -x gzserver 2>/dev/null || true)
+fi
+if [ -z "${alive_client}" ]; then
+  alive_client=$(pgrep -a -x gzclient 2>/dev/null || true)
+fi
 if [ -n "${alive_server}${alive_client}" ]; then
   echo "[fkie-stop] WARNING still running (non-zombie):"
   echo "${alive_server}"

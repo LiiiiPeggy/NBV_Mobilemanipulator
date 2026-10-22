@@ -1,0 +1,77 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 30
+    - Class: rviz/RobotModel
+      Name: AGX
+      Enabled: true
+      Description Topic: /robot_description
+      Visual Enabled: true
+    - Class: rviz/TF
+      Name: TF
+      Enabled: true
+      Marker Scale: 0.35
+      Show Axes: true
+      Show Names: false
+      Frames:
+        All Enabled: false
+        base_link: {Value: true}
+        turret_link: {Value: true}
+        d455_depth_optical_frame: {Value: true}
+        d455_color_optical_frame: {Value: true}
+        world: {Value: true}
+    - Class: rviz/PointCloud2
+      Name: DepthCloud
+      Enabled: true
+      Topic: /realsense/depth/points2
+      Size (m): 0.02
+      Style: Points
+      Color Transformer: AxisColor
+    - Class: octomap_rviz_plugin/ColorOccupancyGrid
+      Name: Octomap
+      Enabled: true
+      Octomap Topic: /robot/octomap_full
+      Voxel Alpha: 0.7
+    - Class: rviz/MarkerArray
+      Name: RRT
+      Enabled: true
+      Marker Topic: /robot/viz_rrt
+    - Class: rviz/MarkerArray
+      Name: Frontiers
+      Enabled: true
+      Marker Topic: /robot/viz_curr_frontiers
+    - Class: rviz/MarkerArray
+      Name: BestBranch
+      Enabled: true
+      Marker Topic: /robot/viz_best_branch
+    - Class: rviz/Marker
+      Name: PlanningBBx
+      Enabled: true
+      Marker Topic: /robot/viz_planning_bbx
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: world
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+    - Class: rviz/FocusCamera
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 8
+      Focal Point: {X: -5.36, Y: -5.685, Z: 0.6}
+      Pitch: 0.5
+      Yaw: 0.9
+Window Geometry:
+  Height: 900
+  Width: 1200

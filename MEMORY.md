@@ -86,12 +86,15 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | 多次测试叠多个 gzserver | 未停旧仿真 / cleanup 未杀子进程 | 先 `scripts/fkie_stop_sim.sh`；zombie 则 recreate 容器 |
 | SSMI `/planner/path` 订阅不到 | 路径一次性发布、后订错过 | planner 启动即 recorder |
 
-## 8. AGX 适配（进行中）
+## 8. AGX 适配（Mode A 已验证）
 
 - 源码：`third_party/agx`（gitignore）；URDF `rangerboxcr10lidar_description/urdf/rangercr10lidar.urdf`。
-- 仿真适配：`configs/fkie/agx_adapt/` + `generate_gazebo_urdf.py`（去 mimic 插件、挂 D455 openni、别名 `turret_link`）。
+- Mode A（默认）：`<static>true</static>`；spawn `z≈0.36`；`-J` 臂姿；**唯一** `/joint_states`；静态 `world→base_link`；无 gazebo js/p3d。
+- Mode B：`--mode dynamic`（物理 + js/p3d），需后续控制器，**未验收**。
 - 启动：`scripts/fkie_agx_warehouse_nbv.sh`；停仿：`scripts/fkie_stop_sim.sh`。
-- 已测：depth `32FC1`、RGB、points2 单发布者、TF、octomap；Action SUCCEEDED 但 **goals=0**。
+- RViz：`agx_debug.rviz`（TF/Octomap/NBV）与 `agx_camera.rviz`（无坐标轴遮挡）。
+- Octomap：`configs/fkie/agx_adapt/launch/octomap_agx.launch`（max_range=5，filter_ground=false）。
+- 已测仓库 NBV：**goals=1**（`reports/fkie_agx_integration.md`）。
 
 ## 6. 主动视角 / 运动后端（设计原则，实现多为待验证）
 

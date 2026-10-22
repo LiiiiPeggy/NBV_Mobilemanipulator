@@ -71,3 +71,5 @@ third_party/gazebo_models/
 # AGX robot description clone
 third_party/agx/
 configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo.urdf
+
+third_party/gazebo_objects/
