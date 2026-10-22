@@ -1,0 +1,91 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 20
+      Reference Frame: <Fixed Frame>
+    - Class: rviz/TF
+      Name: TF
+      Enabled: true
+      Frame Timeout: 15
+      Marker Scale: 0.5
+      Show Axes: true
+      Show Names: true
+    - Class: rviz/MarkerArray
+      Name: RRT
+      Enabled: true
+      Marker Topic: /robot/viz_rrt
+      Queue Size: 10
+    - Class: rviz/MarkerArray
+      Name: BestBranch
+      Enabled: true
+      Marker Topic: /robot/viz_best_branch
+      Queue Size: 10
+    - Class: rviz/MarkerArray
+      Name: Frontiers
+      Enabled: true
+      Marker Topic: /robot/viz_curr_frontiers
+      Queue Size: 10
+    - Class: rviz/MarkerArray
+      Name: CachedNodes
+      Enabled: true
+      Marker Topic: /robot/viz_cached_nodes
+      Queue Size: 10
+    - Class: rviz/MarkerArray
+      Name: PlannerPaths
+      Enabled: true
+      Marker Topic: /robot/planner_paths
+      Queue Size: 10
+    - Class: rviz/Marker
+      Name: PlanningBBx
+      Enabled: true
+      Marker Topic: /robot/viz_planning_bbx
+      Queue Size: 10
+    - Class: rviz/PointCloud2
+      Name: DepthCloud
+      Enabled: true
+      Topic: /realsense/depth/points2
+      Size (m): 0.02
+      Style: Points
+      Color Transformer: AxisColor
+      Queue Size: 5
+    - Class: octomap_rviz_plugin/ColorOccupancyGrid
+      Name: Octomap
+      Enabled: true
+      Octomap Topic: /robot/octomap_full
+      Queue Size: 2
+      Voxel Alpha: 0.8
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: world
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 12
+      Focal Point:
+        X: -5.36
+        Y: -5.685
+        Z: 0.5
+      Name: Current View
+      Pitch: 0.6
+      Yaw: 0.8
+Window Geometry:
+  Height: 900
+  Width: 1400
+  X: 50
+  Y: 50

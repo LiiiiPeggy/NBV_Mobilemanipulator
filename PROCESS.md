@@ -87,3 +87,21 @@ Smoke test 用空/占位 octomap 与假 camera_pose，Action 状态 SUCCEEDED，
 - `/planner/path` 存在但常只发一次；后启动的 `wait_for_message` 易漏。改为 planner 启动即 recorder → 收到 10 poses，`SSMI_EFFECTIVE_OK`。
 
 证据：`logs/ssmi_effective/run3.log`，`data/metrics/ssmi_effective/`。
+
+---
+
+## 2026-10-22 FKIE 室内仓库可视化复现
+
+### 现象
+
+- 最小 world 已能 `goals=1`；换 `warehouse_icra_large` + spawn 深度相机后，Action SUCCEEDED 但 **goals=0**（`complete_exploration=True`，planner：`No frontiers` / RRT 无法扩展）。
+- Gazebo 可见货架；货箱模型在仿真中存在，但原 world 内嵌 DAE 贴图常导致货箱“看起来没有”。
+- RViz 适配配置 initially 无 Image/Camera 面板；官方仓库无移动机械臂 URDF。
+
+### 决策 / 产物
+
+- 模型下载脚本 `scripts/fetch_fkie_gazebo_models.sh`；`gazebo_models/` gitignore。
+- Demo：`scripts/fkie_warehouse_nbv_demo.sh`；适配 world `configs/fkie/adapt_test/warehouse_icra_large_viz.world`（货箱改实体盒材质）；示意 moma SDF/URDF（非官方）。
+- GUI：`rosrun gazebo_ros gazebo`；`GAZEBO_MASTER_URI` 默认 `11355` 避冲突。
+
+证据：`logs/fkie_warehouse_nbv/`，`data/metrics/fkie_warehouse_nbv/summary.txt`。

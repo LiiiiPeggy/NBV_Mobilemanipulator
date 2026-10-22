@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<!-- ADAPTATION: RViz RobotModel for warehouse NBV demo (not official FKIE platform). -->
+<robot name="nbv_moma_viz">
+  <link name="world"/>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0.18" rpy="0 0 0"/>
+      <geometry><box size="0.85 0.55 0.36"/></geometry>
+      <material name="blue"><color rgba="0.2 0.35 0.6 1"/></material>
+    </visual>
+  </link>
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="turret_link">
+    <visual>
+      <origin xyz="0 0 0.15" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.06" length="0.35"/></geometry>
+      <material name="grey"><color rgba="0.55 0.55 0.58 1"/></material>
+    </visual>
+  </link>
+  <joint name="base_to_turret" type="fixed">
+    <parent link="base_link"/>
+    <child link="turret_link"/>
+    <origin xyz="0 0 0.55" rpy="0 0 0"/>
+  </joint>
+
+  <link name="upper_arm_link">
+    <visual>
+      <origin xyz="0.2 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="0.045" length="0.45"/></geometry>
+      <material name="red"><color rgba="0.75 0.2 0.2 1"/></material>
+    </visual>
+  </link>
+  <joint name="turret_to_upper" type="fixed">
+    <parent link="turret_link"/>
+    <child link="upper_arm_link"/>
+    <origin xyz="0.05 0 0.4" rpy="0 0.4 0"/>
+  </joint>
+
+  <link name="forearm_link">
+    <visual>
+      <origin xyz="0.18 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="0.035" length="0.4"/></geometry>
+      <material name="red2"><color rgba="0.75 0.2 0.2 1"/></material>
+    </visual>
+  </link>
+  <joint name="upper_to_forearm" type="fixed">
+    <parent link="upper_arm_link"/>
+    <child link="forearm_link"/>
+    <origin xyz="0.4 0 0" rpy="0 -0.6 0"/>
+  </joint>
+
+  <link name="camera_mount_link">
+    <visual>
+      <geometry><box size="0.08 0.12 0.05"/></geometry>
+      <material name="black"><color rgba="0.1 0.1 0.1 1"/></material>
+    </visual>
+  </link>
+  <joint name="forearm_to_cam" type="fixed">
+    <parent link="forearm_link"/>
+    <child link="camera_mount_link"/>
+    <origin xyz="0.35 0 0" rpy="0 0.55 0"/>
+  </joint>
+
+  <link name="realsense_depth_optical_frame"/>
+  <joint name="cam_to_optical" type="fixed">
+    <parent link="camera_mount_link"/>
+    <child link="realsense_depth_optical_frame"/>
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708"/>
+  </joint>
+
+  <link name="realsense_color_frame"/>
+  <joint name="optical_to_color" type="fixed">
+    <parent link="realsense_depth_optical_frame"/>
+    <child link="realsense_color_frame"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- FKIE expects robot/base_link in some configs -->
+  <link name="robot/base_link"/>
+  <joint name="base_alias" type="fixed">
+    <parent link="base_link"/>
+    <child link="robot/base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+</robot>

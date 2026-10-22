@@ -64,3 +64,6 @@ id_rsa*
 # Docker build leftovers
 *.log
 core
+
+# Large Gazebo model assets (download via script)
+third_party/gazebo_models/

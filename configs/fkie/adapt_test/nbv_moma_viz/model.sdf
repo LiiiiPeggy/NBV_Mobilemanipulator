@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!-- ADAPTATION: visualization-only mobile manipulator for warehouse NBV demo.
+     Not the official FKIE platform URDF (not shipped with fkie-nbv-planner).
+     Frames: base_link → turret_link → arm links → camera. -->
+<sdf version="1.6">
+  <model name="nbv_moma_viz">
+    <static>true</static>
+    <pose>0 0 0 0 0 0</pose>
+
+    <!-- Mobile base -->
+    <link name="base_link">
+      <visual name="chassis">
+        <pose>0 0 0.18 0 0 0</pose>
+        <geometry><box><size>0.85 0.55 0.36</size></box></geometry>
+        <material>
+          <ambient>0.15 0.25 0.45 1</ambient>
+          <diffuse>0.2 0.35 0.6 1</diffuse>
+        </material>
+      </visual>
+      <visual name="wheel_fl">
+        <pose>0.28 0.30 0.08 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.08</radius><length>0.06</length></cylinder></geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+      </visual>
+      <visual name="wheel_fr">
+        <pose>0.28 -0.30 0.08 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.08</radius><length>0.06</length></cylinder></geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+      </visual>
+      <visual name="wheel_rl">
+        <pose>-0.28 0.30 0.08 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.08</radius><length>0.06</length></cylinder></geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+      </visual>
+      <visual name="wheel_rr">
+        <pose>-0.28 -0.30 0.08 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.08</radius><length>0.06</length></cylinder></geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.15 0.15 0.15 1</diffuse></material>
+      </visual>
+    </link>
+
+    <!-- Turret / mast (sampling frame for FKIE) -->
+    <link name="turret_link">
+      <pose>0 0 0.55 0 0 0</pose>
+      <visual name="mast">
+        <pose>0 0 0.15 0 0 0</pose>
+        <geometry><cylinder><radius>0.06</radius><length>0.35</length></cylinder></geometry>
+        <material>
+          <ambient>0.45 0.45 0.48 1</ambient>
+          <diffuse>0.55 0.55 0.58 1</diffuse>
+        </material>
+      </visual>
+      <visual name="turret_plate">
+        <pose>0 0 0.35 0 0 0</pose>
+        <geometry><cylinder><radius>0.12</radius><length>0.04</length></cylinder></geometry>
+        <material>
+          <ambient>0.7 0.55 0.15 1</ambient>
+          <diffuse>0.9 0.7 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+    <joint name="base_to_turret" type="fixed">
+      <parent>base_link</parent>
+      <child>turret_link</child>
+      <pose>0 0 0.55 0 0 0</pose>
+    </joint>
+
+    <!-- Upper arm -->
+    <link name="upper_arm_link">
+      <pose>0.15 0 0.95 0 0.4 0</pose>
+      <visual name="upper">
+        <pose>0.2 0 0 0 1.5708 0</pose>
+        <geometry><cylinder><radius>0.045</radius><length>0.45</length></cylinder></geometry>
+        <material>
+          <ambient>0.55 0.15 0.15 1</ambient>
+          <diffuse>0.75 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+    <joint name="turret_to_upper" type="fixed">
+      <parent>turret_link</parent>
+      <child>upper_arm_link</child>
+      <pose>0.05 0 0.4 0 0.4 0</pose>
+    </joint>
+
+    <!-- Forearm -->
+    <link name="forearm_link">
+      <pose>0.45 0 1.15 0 -0.2 0</pose>
+      <visual name="forearm">
+        <pose>0.18 0 0 0 1.5708 0</pose>
+        <geometry><cylinder><radius>0.035</radius><length>0.4</length></cylinder></geometry>
+        <material>
+          <ambient>0.55 0.15 0.15 1</ambient>
+          <diffuse>0.75 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+    <joint name="upper_to_forearm" type="fixed">
+      <parent>upper_arm_link</parent>
+      <child>forearm_link</child>
+      <pose>0.4 0 0 0 -0.6 0</pose>
+    </joint>
+
+    <!-- Camera housing (sensor attached separately as nbv_depth_cam) -->
+    <link name="camera_mount_link">
+      <pose>0.7 0 1.05 0 0.35 0</pose>
+      <visual name="cam_box">
+        <geometry><box><size>0.08 0.12 0.05</size></box></geometry>
+        <material>
+          <ambient>0.05 0.05 0.05 1</ambient>
+          <diffuse>0.1 0.1 0.1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+    <joint name="forearm_to_cam" type="fixed">
+      <parent>forearm_link</parent>
+      <child>camera_mount_link</child>
+      <pose>0.35 0 0 0 0.55 0</pose>
+    </joint>
+  </model>
+</sdf>

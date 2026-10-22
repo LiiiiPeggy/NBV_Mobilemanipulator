@@ -37,6 +37,8 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 - 启动：官方 `run_planner.launch` 带 **gdb**；容器内用 `configs/fkie/run_planner_nogdb.launch` 或 `rosrun` + `scripts/fkie_smoke_test.sh`。
 - 工作空间：`ws_fkie/src` 必须用**相对**符号链接到 `../../third_party/...`（绝对 `/home/ubuntu/...` 在容器内失效）。
 - World：`third_party/fkie-nbv-planner/worlds/warehouse_icra_large.world` 等可被 Classic 加载。
+- **官方未开源整机**：`fkie-nbv-planner` 无 URDF/xacro/平台 Gazebo 模型；仅约定话题（octomap / camera_pose / MBF footprint）与 RealSense 插件依赖。
+- 仓库依赖模型：`shelves_high`、`big_box3/4`、`Floor_room` → `scripts/fetch_fkie_gazebo_models.sh`；compose 设 `GAZEBO_MODEL_PATH`。
 - **易错**：Action SUCCEEDED + 空 `goals` ≠ 有效 NBV；完整闭环还需 RealSense 点云链路与 footprint（官方平台栈未进本仓）。
 - **有效 NBV 适配验证（2026-10-22）**：`scripts/fkie_effective_nbv_test.sh` + `configs/fkie/adapt_test/nbv_minimal.world` → `VERIFY_FKIE_NONEMPTY_GOALS`，goals=1。要点：
   1. `LD_LIBRARY_PATH` 含 `/usr/lib/x86_64-linux-gnu/gazebo-11/plugins`（`libDepthCameraPlugin.so`）
@@ -44,6 +46,7 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
   3. planner 需 `octomap:=octomap_full`
   4. Action boundary 须覆盖相机 ROI（官方约 `[-8.36,-2.36]×[-8.69,-2.69]`），原点 `±5` 方框会判相机在外 → `goals=0`
   5. 证据：`data/metrics/fkie_effective_nbv/RESULT.md`，`logs/fkie_effective_nbv_run6.log`
+- **仓库场景（部分）**：`scripts/fkie_warehouse_nbv_demo.sh`；GUI 用 `rosrun gazebo_ros gazebo`（勿拆开 gzserver+gzclient）。证据：`data/metrics/fkie_warehouse_nbv/` → goals=0。
 
 ## 4. SSMI（已验证接口）
 
@@ -74,6 +77,12 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | `libDepthCameraPlugin.so` not found | ROS 相机插件 dlopen Gazebo 插件 | `LD_LIBRARY_PATH` 加 gazebo-11/plugins |
 | Kinect 插件：ROS not initialized | 未加载 gazebo_ros_api | `rosrun gazebo_ros gzserver` |
 | FKIE goals=0 且相机在 ROI 外 | Action boundary 与相机位姿不重合 | 用官方 `planner_boundary_*` ROI |
+| 仓库 mesh 缺失 / 空场景 | 未拉 PX4 shelves/big_box + Floor_room | `fetch_fkie_gazebo_models.sh` + `GAZEBO_MODEL_PATH` |
+| 仓库有货架难见货箱 | world 内嵌 `big_box*.dae` 贴图易失败 | 适配 world `warehouse_icra_large_viz.world` 用实体盒可视化（待验收） |
+| `/realsense/depth/image_raw` 为 rgb8 | openni 插件 RGB/depth 同 topic | SDF 中 rgb 与 depth 话题分离 |
+| 仓库 NBV goals=0（ROI 内） | frontiers/RRT 扩不开（地图/朝向/自由空间） | 待查；≠完整探索成功 |
+| Gazebo/RViz 无机械臂 | 官方未发布平台模型 | 需自备平台或示意模型 |
+| 分启 gzserver+gzclient | 双 `/gazebo` 抢 master | `rosrun gazebo_ros gazebo` 一体启动 |
 | SSMI `/planner/path` 订阅不到 | 路径一次性发布、后订错过 | planner 启动即 recorder |
 
 ## 6. 主动视角 / 运动后端（设计原则，实现多为待验证）

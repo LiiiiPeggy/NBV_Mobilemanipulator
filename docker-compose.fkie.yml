@@ -19,6 +19,8 @@ services:
       LIBGL_ALWAYS_SOFTWARE: ${LIBGL_ALWAYS_SOFTWARE:-0}
       # Silence ROS Noetic EOL popup (EOL 2025-05-31); project stays on Noetic by design
       DISABLE_ROS1_EOL_WARNINGS: "1"
+      # FKIE warehouse/outdoor worlds need shelves_high, big_box3/4, Floor_room
+      GAZEBO_MODEL_PATH: /workspace/third_party/gazebo_models:/usr/share/gazebo-11/models
     volumes:
       - .:/workspace:rw
       - /tmp/.X11-unix:/tmp/.X11-unix:rw

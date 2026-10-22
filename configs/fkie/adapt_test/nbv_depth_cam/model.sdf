@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!-- ADAPTATION: depth camera to spawn into official FKIE warehouse world.
+     RGB and depth use separate topics so depth stays 16UC1/32FC1. -->
+<sdf version="1.6">
+  <model name="nbv_depth_cam">
+    <static>true</static>
+    <link name="link">
+      <inertial>
+        <mass>0.1</mass>
+        <inertia>
+          <ixx>0.001</ixx><iyy>0.001</iyy><izz>0.001</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <!-- Tiny marker; main robot body is nbv_moma_viz -->
+      <visual name="v">
+        <geometry><box><size>0.06 0.08 0.04</size></box></geometry>
+        <material><ambient>0.05 0.8 0.2 1</ambient><diffuse>0.1 0.9 0.2 1</diffuse></material>
+      </visual>
+      <sensor name="camera" type="depth">
+        <always_on>true</always_on>
+        <update_rate>10</update_rate>
+        <camera>
+          <horizontal_fov>1.3962634</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip><near>0.1</near><far>8.0</far></clip>
+        </camera>
+        <plugin name="cam" filename="libgazebo_ros_openni_kinect.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>10.0</updateRate>
+          <cameraName>realsense</cameraName>
+          <imageTopicName>rgb/image_raw</imageTopicName>
+          <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>depth/image_raw</depthImageTopicName>
+          <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>depth/points</pointCloudTopicName>
+          <frameName>realsense_depth_optical_frame</frameName>
+          <pointCloudCutoff>0.15</pointCloudCutoff>
+          <pointCloudCutoffMax>7.5</pointCloudCutoffMax>
+          <distortionK1>0.0</distortionK1>
+          <distortionK2>0.0</distortionK2>
+          <distortionK3>0.0</distortionK3>
+          <distortionT1>0.0</distortionT1>
+          <distortionT2>0.0</distortionT2>
+          <CxPrime>0</CxPrime>
+          <Cx>0</Cx>
+          <Cy>0</Cy>
+          <focalLength>0</focalLength>
+          <hackBaseline>0</hackBaseline>
+        </plugin>
+      </sensor>
+    </link>
+  </model>
+</sdf>

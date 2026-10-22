@@ -30,12 +30,15 @@
 | 项 | 说明 |
 |----|------|
 | FKIE 有效 NBV | 适配最小 world（非官方移动操作平台栈）；验证层级=规划调用成功 + 非空 goals，**不是**完整探索闭环/运动执行 |
+| FKIE 室内仓库可视化复现 | `scripts/fkie_warehouse_nbv_demo.sh` 可起 warehouse + 深度相机 + GUI；**Action SUCCEEDED 但 goals=0**（`FKIE_WAREHOUSE_NBV_PARTIAL_OR_FAIL`） |
 | SSMI 规划质量 | 路径非空与官方 `New path published!` 已确认；路径质量/闭环运动未做定量验收 |
 | SSMI teleop | 无 TTY 下失败（预期） |
 
 ## 未完成 / 未验证
 
-- FKIE 官方平台栈完整探索闭环与运动执行
+- 仓库场景下 FKIE **非空 goals**（当前 frontiers/RRT 扩不开）
+- RViz 相机 Image 面板与示意机械臂模型接入尚未跑通验收
+- FKIE 官方平台栈完整探索闭环与运动执行（官方未开源整机 URDF）
 - REMANI / TopAY 运动后端接入
 - 4070 Laptop 环境复用验证
 - 任何**实机**部署
@@ -44,9 +47,10 @@
 
 - 容器：`nbv_fkie`、`nbv_ssmi`（`network_mode: host`）
 - 第三方 pin：FKIE `91091f8`；SSMI-example `750122b`
+- 仓库模型资产：`scripts/fetch_fkie_gazebo_models.sh` → `third_party/gazebo_models/`（gitignore）
 
 ## 下一步计划
 
-1. 评估 REMANI / TopAY 接口与话题约定，对接 FKIE goals / SSMI path。
-2. 按需加强 FKIE 闭环（footprint/执行）或换官方平台栈。
-3. 在 4070 Laptop 复用同一 Compose 做开发调试。
+1. 修仓库场景 NBV（深度话题分离、地图/前沿、相机朝向）争取非空 goals。
+2. 完善可视化（RViz 相机视图；可选示意 moma，非官方原模）。
+3. 评估 REMANI / TopAY 接口与话题约定。
