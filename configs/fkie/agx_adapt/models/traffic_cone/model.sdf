@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="traffic_cone">
+    <static>true</static>
+    <link name="link">
+      <collision name="c">
+        <pose>0 0 0.2 0 0 0</pose>
+        <geometry><cylinder><radius>0.12</radius><length>0.4</length></cylinder></geometry>
+      </collision>
+      <visual name="v">
+        <pose>0 0 0.2 0 0 0</pose>
+        <geometry><cylinder><radius>0.12</radius><length>0.4</length></cylinder></geometry>
+        <material>
+          <ambient>0.9 0.35 0.05 1</ambient>
+          <diffuse>1.0 0.4 0.05 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

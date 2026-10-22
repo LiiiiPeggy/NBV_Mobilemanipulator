@@ -1,0 +1,9 @@
+# Temporary P3 observation pose (rad). Does NOT replace arm_view_pose.yaml.
+# Auto-searched to look toward aisle table ROI (~(-3.05,-6.37,0.86)).
+cr10_joint1: 0.0
+cr10_joint2: -1.5
+cr10_joint3: 1.075
+cr10_joint4: 0.0
+cr10_joint5: 1.2
+cr10_joint6: 0.0
+gripper_finger1_joint: 0.0

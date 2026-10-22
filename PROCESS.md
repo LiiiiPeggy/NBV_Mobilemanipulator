@@ -147,3 +147,33 @@ Smoke test 用空/占位 octomap 与假 camera_pose，Action 状态 SUCCEEDED，
 - 最小 world 回归 **goals=2**。  
 
 证据：`reports/fkie_agx_integration.md`，`data/metrics/fkie_agx_warehouse_nbv/`，`logs/fkie_effective_nbv_regression/`。
+
+---
+
+## 2026-10-22 室内多对象最小闭环（P2–P5 / P4-A）
+
+### 决策：不改已验证 Mode A 姿态与 FKIE 配置
+
+对象场景与感知在适配层脚本中完成；`arm_view_pose.yaml` / warehouse NBV 脚本保持。本轮重启后仓库 NBV 仍 `goals=1`。
+
+### 根因：物体在 TF 视锥内但 RGB 看不见
+
+Mode A URDF `<static>true>` 冻结 Gazebo 关节。`/joint_states` 驱动的 TF（RViz/NBV）与 Gazebo `cr10_Link6` / D455 传感器位姿不一致；`SetModelConfiguration` 无法真正改静态模型关节。  
+**后果**：按 TF 摆放的 YCB/球体投影进图像但深度/RGB 为天空；按 Gazebo 可见 ROI（约 `(-6.5,-7.0,1.0)`）摆放后相机能看到。
+
+### 决策：P3 定位用经验标定外参
+
+在可见 ROI 上用彩色斑块+深度与 GT 做 Umeyama，得到 `T_world_cam_calib.json`；`--world-tf-mode calib`。这是 Mode A 权宜之计，**不是**最终外参方案。Mode B / 关节一致后应改回 TF。
+
+### 决策：感知先用 color/depth，不装 Grounded-SAM 进 FKIE 容器
+
+容器无 torch；避免破坏 FKIE。后续独立感知容器 + ROS JSON 接口。
+
+### P4-A
+
+`nbv_to_remani_ee_goal.py` 用 live TF 将 FKIE 相机目标转为 `/ee_goal` PoseStamped（位置+姿态）。未启动 REMANI 规划节点；Mode A 不能执行运动。
+
+### 预实验指标
+
+thresh=0.35 m：tp=2，unique_recall=0.2，precision=0.125，mean_err≈0.178 m。  
+证据：`reports/indoor_objects_min_loop.md`，`reports/indoor_objects_shots/`。

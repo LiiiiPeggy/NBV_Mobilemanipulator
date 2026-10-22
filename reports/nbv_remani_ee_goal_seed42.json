@@ -1,0 +1,27 @@
+{
+  "camera_goal_xyz": [
+    -4.419,
+    -6.198,
+    1.609
+  ],
+  "camera_goal_rpy": [
+    0.0,
+    0.35,
+    0.0
+  ],
+  "ee_frame": "cr10_Link6",
+  "camera_frame": "d455_color_optical_frame",
+  "ee_goal_xyz": [
+    -4.434547800727577,
+    -6.123468184982269,
+    1.5709204419187026
+  ],
+  "ee_goal_quat_xyzw": [
+    0.00046140550310962185,
+    0.17410795387880376,
+    0.0003227585425879863,
+    0.9847264103942889
+  ],
+  "published": false,
+  "note": "Planning execution requires REMANI node accepting /ee_goal; Mode A cannot execute motion."
+}

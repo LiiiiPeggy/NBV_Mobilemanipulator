@@ -73,3 +73,6 @@ third_party/agx/
 configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo.urdf
 
 third_party/gazebo_objects/
+
+# WBC / REMANI clone (own .git; interface inspected locally)
+third_party/wbc/

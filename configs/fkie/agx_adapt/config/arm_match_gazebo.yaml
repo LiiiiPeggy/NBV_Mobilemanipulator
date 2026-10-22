@@ -1,0 +1,8 @@
+# Matches Mode A Gazebo frozen joints
+cr10_joint1: -0.8999999999999999
+cr10_joint2: -0.08571428571428585
+cr10_joint3: 0.0
+cr10_joint4: 0.0
+cr10_joint5: 1.8
+cr10_joint6: 0.0
+gripper_finger1_joint: 0.0

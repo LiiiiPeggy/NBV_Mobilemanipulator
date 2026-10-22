@@ -105,10 +105,24 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 - **运动后端（REMANI / TopAY）**：应以规划输出位姿/路径话题或 Action 为边界对接；未验证前不要改 FKIE/SSMI 核心消息定义来迁就后端。
 - **验证阶梯**：先保证地图与规划接口稳定，再接运动执行；不要跳过话题/Action 层直接宣称闭环。
 
-## 7. 禁止轻易改动的已验证点
+## 7. 多对象场景 / 感知 / 评测（2026-10-22 起）
+
+| 项 | 内容 |
+|----|------|
+| 对象资产 | `scripts/fetch_object_models.sh` → `third_party/gazebo_objects/gazebo_ycb`（gitignore）；本地 `configs/fkie/agx_adapt/models/{simple_table,traffic_cone,cardboard_occluder}` |
+| 布局/真值 | `scripts/generate_object_scene.py`（seed）、`spawn_object_scene.py`、`export_object_gt.py`；真值**仅**评测器用 |
+| 感知 | `scripts/perceive_rgbd_objects.py`（depth/color/yolo）；Mode A 定位需 `--world-tf-mode calib` + `T_world_cam_calib.json` |
+| 评测 | `scripts/evaluate_object_discovery.py`；预实验阈值 **0.35 m**（正式实验前冻结，勿事后调） |
+| REMANI 接口 | `/ee_goal`=`geometry_msgs/PoseStamped`（world）；`scripts/nbv_to_remani_ee_goal.py`：`T_w_ee = T_w_cam * inv(T_ee_cam)` |
+| WBC 克隆 | `third_party/wbc`（gitignore），分支 `remani-real-implementation` |
+
+**Mode A 关键约束（待 Mode B 解决）**：`<static>true>` 后 Gazebo 臂关节**冻结**；`SetModelConfiguration` 报 success 也不改 Link6。`/joint_states` TF 与 Gazebo D455 **不一致**。可见物体摆放必须以 Gazebo 相机视锥为准（经验 ROI 约 `(-6.5,-7.0,1.0)`）。
+
+## 8. 禁止轻易改动的已验证点
 
 - `.:/workspace` 挂载与相对 symlink 策略  
 - 双 Compose 独立、`name: nbv_fkie|nbv_ssmi`  
 - Xauth cookie 方案（相对 `xhost +` / privileged）  
 - SSMI 使用 Fortress + `ros_gz` 官方示例路径  
-- 验证层级区分（编译 / 启动 / 调用 / 闭环 / 实机）
+- 验证层级区分（编译 / 启动 / 调用 / 闭环 / 实机）  
+- Mode A `arm_view_pose.yaml` / warehouse NBV 非空配置（不要为「更优雅」改掉）

@@ -1,0 +1,369 @@
+{
+  "views": [
+    {
+      "backend": "color",
+      "stamp": {
+        "secs": 26568,
+        "nsecs": 97000000
+      },
+      "inference_s": 0.006354093551635742,
+      "n_detections": 20,
+      "n_localized": 16,
+      "objects": [
+        {
+          "class_name": "bottle",
+          "confidence": 0.9,
+          "valid_depth_ratio": 1.0,
+          "center_cam": [
+            -0.6962852834498808,
+            -0.46374978081766255,
+            0.8910917639732361
+          ],
+          "center_world": [
+            -6.346494053079094,
+            -7.383832118140617,
+            0.7294833146741664
+          ],
+          "bbox_xyxy": [
+            0,
+            0,
+            135,
+            141
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.9,
+          "valid_depth_ratio": 1.0,
+          "center_cam": [
+            -1.98926711560994,
+            0.5839142279651067,
+            2.22495698928833
+          ],
+          "center_world": [
+            -6.397854248301846,
+            -8.940367543078397,
+            2.186589328030813
+          ],
+          "bbox_xyxy": [
+            0,
+            233,
+            72,
+            427
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.9,
+          "valid_depth_ratio": 0.9967136150234742,
+          "center_cam": [
+            -1.9825568255727657,
+            0.03628639780582433,
+            2.2248308658599854
+          ],
+          "center_world": [
+            -5.93088773342018,
+            -8.827759967496847,
+            1.9235245220126318
+          ],
+          "bbox_xyxy": [
+            7,
+            121,
+            172,
+            263
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.9,
+          "valid_depth_ratio": 0.0910148606483685,
+          "center_cam": [
+            1.1642161369672865,
+            -0.8991194833883979,
+            1.4899401664733887
+          ],
+          "center_world": [
+            -5.925631800439992,
+            -5.517907688551838,
+            1.321794643145219
+          ],
+          "bbox_xyxy": [
+            410,
+            0,
+            601,
+            99
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.9,
+          "valid_depth_ratio": 0.0897863818424566,
+          "center_cam": [
+            0.04500235328624633,
+            -0.8707955360888664,
+            1.517578125
+          ],
+          "center_world": [
+            -5.784662117814862,
+            -6.6207626719419315,
+            1.187466572675997
+          ],
+          "bbox_xyxy": [
+            165,
+            0,
+            379,
+            98
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "bottle",
+          "confidence": 0.7499,
+          "valid_depth_ratio": 1.0,
+          "center_cam": [
+            -0.48011717085069555,
+            0.3036717889133026,
+            0.6263290047645569
+          ],
+          "center_world": [
+            -7.16426555286792,
+            -7.303345187840226,
+            0.9042273144017132
+          ],
+          "bbox_xyxy": [
+            25,
+            359,
+            108,
+            460
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.6514,
+          "valid_depth_ratio": 0.2396873643074251,
+          "center_cam": [
+            1.3254077742986334,
+            -0.7914645354546207,
+            1.593428134918213
+          ],
+          "center_world": [
+            -5.98750468508839,
+            -5.3877998684559705,
+            1.4877036322573487
+          ],
+          "bbox_xyxy": [
+            592,
+            0,
+            640,
+            98
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.4264,
+          "valid_depth_ratio": 0.20124364047484455,
+          "center_cam": [
+            0.2735403838006882,
+            -0.7805333365347222,
+            1.5904107093811035
+          ],
+          "center_world": [
+            -5.856154237410167,
+            -6.419341469908247,
+            1.3288874255035734
+          ],
+          "bbox_xyxy": [
+            353,
+            37,
+            411,
+            98
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.2704,
+          "valid_depth_ratio": 0.3679712100764732,
+          "center_cam": [
+            1.1128986672215837,
+            -0.3615405833623657,
+            1.3622281551361084
+          ],
+          "center_world": [
+            -6.442102805654979,
+            -5.663794930909861,
+            1.4628957685252257
+          ],
+          "bbox_xyxy": [
+            582,
+            122,
+            640,
+            161
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "bottle",
+          "confidence": 0.2574,
+          "valid_depth_ratio": 1.0,
+          "center_cam": [
+            -0.46639274626885235,
+            0.11628559089277016,
+            0.8433129787445068
+          ],
+          "center_world": [
+            -6.897167421408532,
+            -7.267952639791915,
+            1.0031714790420603
+          ],
+          "bbox_xyxy": [
+            120,
+            260,
+            156,
+            326
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "bottle",
+          "confidence": 0.2218,
+          "valid_depth_ratio": 0.841715976331361,
+          "center_cam": [
+            -0.47373735707108316,
+            -0.0766109917375679,
+            1.0544860363006592
+          ],
+          "center_world": [
+            -6.6254270712783425,
+            -7.251733105221695,
+            1.0912124010349638
+          ],
+          "bbox_xyxy": [
+            151,
+            192,
+            190,
+            244
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.143,
+          "valid_depth_ratio": 0.17302052785923755,
+          "center_cam": [
+            0.0272150432442272,
+            -0.9734611621973576,
+            1.4119246006011963
+          ],
+          "center_world": [
+            -5.747525886863216,
+            -6.611321710753118,
+            1.0441101811086675
+          ],
+          "bbox_xyxy": [
+            300,
+            0,
+            333,
+            31
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.1424,
+          "valid_depth_ratio": 1.0,
+          "center_cam": [
+            -2.0019660343456613,
+            -1.6148173864823783,
+            3.4356584548950195
+          ],
+          "center_world": [
+            -3.9100962558579715,
+            -8.607001137231007,
+            2.1690672215905433
+          ],
+          "bbox_xyxy": [
+            113,
+            65,
+            149,
+            98
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "bottle",
+          "confidence": 0.1338,
+          "valid_depth_ratio": 1.0,
+          "center_cam": [
+            0.6799655339948323,
+            -0.6627200313210503,
+            1.6615891456604004
+          ],
+          "center_world": [
+            -5.976066896420706,
+            -6.049020013105232,
+            1.5094718108395804
+          ],
+          "bbox_xyxy": [
+            390,
+            103,
+            528,
+            110
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "bottle",
+          "confidence": 0.1274,
+          "valid_depth_ratio": 1.0,
+          "center_cam": [
+            -0.21453766791040174,
+            -0.6608746551722721,
+            1.6631450653076172
+          ],
+          "center_world": [
+            -5.855933311781698,
+            -6.925067797348025,
+            1.3743792274648048
+          ],
+          "bbox_xyxy": [
+            231,
+            103,
+            324,
+            111
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        },
+        {
+          "class_name": "box",
+          "confidence": 0.1143,
+          "valid_depth_ratio": 0.8253205128205128,
+          "center_cam": [
+            -0.4568288466163571,
+            -0.453872025602659,
+            0.9971049427986145
+          ],
+          "center_world": [
+            -6.334132490815259,
+            -7.158349727746699,
+            0.8624518548421277
+          ],
+          "bbox_xyxy": [
+            159,
+            36,
+            183,
+            114
+          ],
+          "optical_frame": "d455_depth_optical_frame"
+        }
+      ],
+      "view_id": 0
+    }
+  ]
+}

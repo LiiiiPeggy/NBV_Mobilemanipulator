@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <model name="cardboard_occluder">
+    <static>true</static>
+    <link name="link">
+      <collision name="c">
+        <geometry><box><size>0.4 0.08 0.7</size></box></geometry>
+      </collision>
+      <visual name="v">
+        <geometry><box><size>0.4 0.08 0.7</size></box></geometry>
+        <material>
+          <ambient>0.72 0.55 0.32 1</ambient>
+          <diffuse>0.85 0.65 0.38 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

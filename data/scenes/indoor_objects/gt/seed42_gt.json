@@ -1,0 +1,278 @@
+{
+  "scene_id": "indoor_objects_seed42",
+  "seed": 42,
+  "source": "gazebo_get_model_state",
+  "n_objects": 10,
+  "objects": [
+    {
+      "instance_id": "obj_00",
+      "gazebo_name": "vis_obj_00",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -6.75,
+        "y": -7.15,
+        "z": 1.0,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.75,
+        -7.15,
+        1.0
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_01",
+      "gazebo_name": "vis_obj_01",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -6.5,
+        "y": -7.15,
+        "z": 1.05,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.5,
+        -7.15,
+        1.05
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_02",
+      "gazebo_name": "vis_obj_02",
+      "class_name": "banana",
+      "difficulty": "easy",
+      "pose": {
+        "x": -6.25,
+        "y": -7.15,
+        "z": 0.95,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.25,
+        -7.15,
+        0.95
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_03",
+      "gazebo_name": "vis_obj_03",
+      "class_name": "apple",
+      "difficulty": "easy",
+      "pose": {
+        "x": -6.7,
+        "y": -6.9,
+        "z": 1.2,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.7,
+        -6.9,
+        1.2
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_04",
+      "gazebo_name": "vis_obj_04",
+      "class_name": "box",
+      "difficulty": "medium",
+      "pose": {
+        "x": -6.45,
+        "y": -6.85,
+        "z": 1.15,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.45,
+        -6.85,
+        1.15
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_05",
+      "gazebo_name": "vis_obj_05",
+      "class_name": "box",
+      "difficulty": "medium",
+      "pose": {
+        "x": -6.2,
+        "y": -6.95,
+        "z": 1.25,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.2,
+        -6.95,
+        1.25
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_06",
+      "gazebo_name": "vis_obj_06",
+      "class_name": "bowl",
+      "difficulty": "medium",
+      "pose": {
+        "x": -6.8,
+        "y": -6.65,
+        "z": 0.85,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.8,
+        -6.65,
+        0.85
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_07",
+      "gazebo_name": "vis_obj_07",
+      "class_name": "can",
+      "difficulty": "hard",
+      "pose": {
+        "x": -6.5,
+        "y": -6.6,
+        "z": 1.0,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.5,
+        -6.6,
+        1.0
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_08",
+      "gazebo_name": "vis_obj_08",
+      "class_name": "cone",
+      "difficulty": "hard",
+      "pose": {
+        "x": -6.25,
+        "y": -6.65,
+        "z": 1.1,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.25,
+        -6.65,
+        1.1
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_09",
+      "gazebo_name": "vis_obj_09",
+      "class_name": "box",
+      "difficulty": "hard",
+      "pose": {
+        "x": -6.6,
+        "y": -7.35,
+        "z": 1.3,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -6.6,
+        -7.35,
+        1.3
+      ],
+      "aabb_size_xyz": [
+        0.12,
+        0.12,
+        0.12
+      ],
+      "frame_id": "world"
+    }
+  ]
+}

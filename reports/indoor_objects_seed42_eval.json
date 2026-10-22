@@ -1,0 +1,26 @@
+{
+  "tp": 2,
+  "fp": 14,
+  "fn": 8,
+  "precision": 0.125,
+  "unique_recall": 0.2,
+  "mean_center_error_m": 0.17765153181965065,
+  "matches": [
+    {
+      "pred": 9,
+      "gt": 0,
+      "dist": 0.18862961972402872,
+      "class": "bottle"
+    },
+    {
+      "pred": 10,
+      "gt": 1,
+      "dist": 0.16667344391527258,
+      "class": "bottle"
+    }
+  ],
+  "dist_thresh_m": 0.35,
+  "n_gt": 10,
+  "n_pred": 16,
+  "scene_id": "indoor_objects_seed42"
+}
