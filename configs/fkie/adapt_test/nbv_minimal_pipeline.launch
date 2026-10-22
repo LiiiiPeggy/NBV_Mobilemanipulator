@@ -1,0 +1,65 @@
+<launch>
+  <!-- ADAPTATION TEST pipeline (FKIE-gain-adapted sensing front-end).
+       Gazebo depth cam → PointCloud2 → OctoMap → FKIE NBV Action.
+       Does NOT include official mobile-manipulator / RealSense Gazebo plugin stack. -->
+
+  <arg name="gui" default="false"/>
+  <arg name="world" default="$(find fkie_nbv_planner)/../../../../configs/fkie/adapt_test/nbv_minimal.world"/>
+  <!-- Prefer absolute path via env; overridden from smoke script -->
+  <arg name="world_file" default="/workspace/configs/fkie/adapt_test/nbv_minimal.world"/>
+  <arg name="robot_ns" default="robot"/>
+  <arg name="paused" default="false"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_file)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="$(eval not arg('gui'))"/>
+    <arg name="verbose" value="true"/>
+  </include>
+
+  <!-- Optical frame TF: Gazebo depth optical frame convention (Z forward) approximated.
+       Camera model pose in world: (-5.36, -5.685, 1.0), pitch 0.35 rad. -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_depth_optical"
+        args="-5.36 -5.685 1.0 0 0.35 0 world realsense_depth_optical_frame"/>
+  <!-- FKIE camera_pose_tf expects realsense_color_frame; alias to optical -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="optical_to_color"
+        args="0 0 0 0 0 0 realsense_depth_optical_frame realsense_color_frame"/>
+  <!-- Sampling frame used by freespace_fast yaml -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_turret"
+        args="-5.36 -5.685 0.8 0 0 0 world turret_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_base"
+        args="-5.36 -5.685 0.0 0 0 0 world robot/base_link"/>
+
+  <!-- Remap kinect points → FKIE octomap expected topic -->
+  <node pkg="topic_tools" type="relay" name="relay_points"
+        args="/realsense/depth/points /realsense/depth/points2"/>
+
+  <!-- Octomap from live point cloud -->
+  <include file="$(find fkie_nbv_planner)/launch/octomap_server.launch">
+    <arg name="robot_ns" value="$(arg robot_ns)"/>
+  </include>
+
+  <!-- Camera pose publisher (world → realsense_color_frame) -->
+  <node name="camera_pose_pub" pkg="fkie_nbv_planner" type="camera_pose_tf.py" clear_params="true">
+    <remap from="camera_pose" to="$(arg robot_ns)/camera_pose"/>
+    <param name="world_frame" value="world"/>
+    <param name="sensor_frame" value="realsense_color_frame"/>
+    <param name="rate" value="10.0"/>
+  </node>
+
+  <!-- Static footprint for robot_bbx -->
+  <node pkg="rostopic" type="rostopic" name="pub_footprint" args="pub -r 2 /$(arg robot_ns)/$(arg robot_ns)_mbf/global_costmap/footprint geometry_msgs/PolygonStamped
+    '{header: {frame_id: world}, polygon: {points: [{x: -0.3, y: -0.3, z: 0}, {x: 0.3, y: -0.3, z: 0}, {x: 0.3, y: 0.3, z: 0}, {x: -0.3, y: 0.3, z: 0}]}}'"/>
+
+  <!-- Planner without gdb -->
+  <node name="fkie_nbv_planner" pkg="fkie_nbv_planner" type="nbvplanner_node"
+        ns="$(arg robot_ns)" clear_params="true" output="screen">
+    <param name="world_frame" value="world"/>
+    <rosparam command="load" file="$(find fkie_nbv_planner)/config/nbv_planner_freespace_fast.yaml"/>
+    <remap from="camera_pose" to="camera_pose"/>
+    <remap from="octomap" to="octomap_full"/>
+    <remap from="/$(arg robot_ns)/robot_bbx" to="/$(arg robot_ns)/$(arg robot_ns)_mbf/global_costmap/footprint"/>
+  </node>
+</launch>

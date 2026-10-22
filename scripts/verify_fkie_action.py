@@ -34,9 +34,17 @@ def main():
 
     poly = PolygonStamped()
     poly.header = goal.header
-    # 10m x 10m square exploration boundary around origin
-    for x, y in [(-5.0, -5.0), (5.0, -5.0), (5.0, 5.0), (-5.0, 5.0)]:
-        poly.polygon.points.append(Point32(x=x, y=y, z=0.0))
+    # Default: FKIE freespace ROI around (-5.36,-5.685) from nbv_planner_*.yaml
+    # Override with ~boundary_xy: [[x,y], ...] if needed.
+    default_xy = [
+        (-8.3603, -2.6852),
+        (-2.3603, -2.6852),
+        (-2.3603, -8.6852),
+        (-8.3603, -8.6852),
+    ]
+    boundary_xy = rospy.get_param("~boundary_xy", default_xy)
+    for x, y in boundary_xy:
+        poly.polygon.points.append(Point32(x=float(x), y=float(y), z=0.0))
 
     boundary = BoundaryPolygon()
     boundary.id = 1
@@ -62,17 +70,35 @@ def main():
     state = client.get_state()
     result = client.get_result()
     rospy.loginfo("Action state=%s", state)
+    n_goals = len(result.goals) if result.goals else 0
     rospy.loginfo(
         "result: complete_exploration=%s request_base_pose=%s goals=%d explored_boundary_id=%s",
         result.complete_exploration,
         result.request_base_pose,
-        len(result.goals) if result.goals else 0,
+        n_goals,
         result.explored_boundary_id,
     )
+    if result.goal_pose_3d and result.goal_pose_3d.header.frame_id:
+        p = result.goal_pose_3d.pose.position
+        rospy.loginfo(
+            "goal_pose_3d frame=%s xyz=(%.3f, %.3f, %.3f)",
+            result.goal_pose_3d.header.frame_id,
+            p.x,
+            p.y,
+            p.z,
+        )
+    for i, g in enumerate(result.goals or []):
+        p = g.pose.position
+        print(
+            "GOAL[%d] frame=%s xyz=(%.3f, %.3f, %.3f)"
+            % (i, g.header.frame_id, p.x, p.y, p.z)
+        )
     # State 3 == SUCCEEDED in actionlib
     if state != 3:
         sys.exit(4)
     print("VERIFY_FKIE_ACTION_OK")
+    if n_goals > 0:
+        print("VERIFY_FKIE_NONEMPTY_GOALS")
     return 0
 
 

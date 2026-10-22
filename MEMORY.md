@@ -38,6 +38,12 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 - 工作空间：`ws_fkie/src` 必须用**相对**符号链接到 `../../third_party/...`（绝对 `/home/ubuntu/...` 在容器内失效）。
 - World：`third_party/fkie-nbv-planner/worlds/warehouse_icra_large.world` 等可被 Classic 加载。
 - **易错**：Action SUCCEEDED + 空 `goals` ≠ 有效 NBV；完整闭环还需 RealSense 点云链路与 footprint（官方平台栈未进本仓）。
+- **有效 NBV 适配验证（2026-10-22）**：`scripts/fkie_effective_nbv_test.sh` + `configs/fkie/adapt_test/nbv_minimal.world` → `VERIFY_FKIE_NONEMPTY_GOALS`，goals=1。要点：
+  1. `LD_LIBRARY_PATH` 含 `/usr/lib/x86_64-linux-gnu/gazebo-11/plugins`（`libDepthCameraPlugin.so`）
+  2. 必须 `rosrun gazebo_ros gzserver`（加载 `libgazebo_ros_api_plugin.so`），裸 `gzserver` 相机插件不初始化 ROS
+  3. planner 需 `octomap:=octomap_full`
+  4. Action boundary 须覆盖相机 ROI（官方约 `[-8.36,-2.36]×[-8.69,-2.69]`），原点 `±5` 方框会判相机在外 → `goals=0`
+  5. 证据：`data/metrics/fkie_effective_nbv/RESULT.md`，`logs/fkie_effective_nbv_run6.log`
 
 ## 4. SSMI（已验证接口）
 
@@ -53,6 +59,7 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 - 编译硬依赖：`libgflags-dev`（`ros_ign_gazebo`）。
 - `rosdep update` 可能超时：Dockerfile 中非致命即可。
 - 无 TTY 时 `teleop_twist_keyboard` 会 termios 失败；可忽略。
+- **有效地图/规划验证（2026-10-22）**：`scripts/ssmi_effective_map_plan_test.sh` → `SSMI_EFFECTIVE_OK`。octomap `data_len` 15s 内增长（如 71028→91152）；`/planner/path` 为 `nav_msgs/Path`、非空 poses（实测 10）。路径常一次性发布，需在 planner 启动时即订阅录制。证据：`data/metrics/ssmi_effective/RESULT.md`。
 
 ## 5. 常见故障（已定位）
 
@@ -64,6 +71,10 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | `pkill -f ign` 自杀 | cmdline 含 `ign` | 用 PID / `rosnode kill` |
 | Gazebo `Address already in use` | host 网络残留 gz* | kill 残留或换 `GAZEBO_MASTER_URI` |
 | 宿主机删不掉 build | 容器 root 产物 | 在容器内 `rm` 或改属主 |
+| `libDepthCameraPlugin.so` not found | ROS 相机插件 dlopen Gazebo 插件 | `LD_LIBRARY_PATH` 加 gazebo-11/plugins |
+| Kinect 插件：ROS not initialized | 未加载 gazebo_ros_api | `rosrun gazebo_ros gzserver` |
+| FKIE goals=0 且相机在 ROI 外 | Action boundary 与相机位姿不重合 | 用官方 `planner_boundary_*` ROI |
+| SSMI `/planner/path` 订阅不到 | 路径一次性发布、后订错过 | planner 启动即 recorder |
 
 ## 6. 主动视角 / 运动后端（设计原则，实现多为待验证）
 

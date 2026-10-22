@@ -17,6 +17,8 @@ services:
       NVIDIA_DRIVER_CAPABILITIES: all
       ROS_MASTER_URI: http://localhost:11311
       LIBGL_ALWAYS_SOFTWARE: ${LIBGL_ALWAYS_SOFTWARE:-0}
+      # Silence ROS Noetic EOL popup (EOL 2025-05-31); project stays on Noetic by design
+      DISABLE_ROS1_EOL_WARNINGS: "1"
     volumes:
       - .:/workspace:rw
       - /tmp/.X11-unix:/tmp/.X11-unix:rw

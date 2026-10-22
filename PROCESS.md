@@ -67,3 +67,23 @@ Smoke test 用空/占位 octomap 与假 camera_pose，Action 状态 SUCCEEDED，
 
 - 旧 `PROGRESS.md` 仍写「远程待推送」；实际已于 `d90c250` 推送 `origin/main`。已按验证证据更正。
 - 明确验证层级，防止将 Action/话题出现误记为完整闭环或实机成功。
+
+---
+
+## 2026-10-22 FKIE 有效 NBV + SSMI 地图/规划验证
+
+### FKIE：深度插件与 ROS API
+
+1. `libgazebo_ros_openni_kinect.so` 依赖 `libDepthCameraPlugin.so` → 需 `LD_LIBRARY_PATH` 含 gazebo-11 plugins。
+2. 裸 `gzserver` 会报 ROS not initialized；改用 `rosrun gazebo_ros gzserver`。
+3. planner 未 remap `octomap→octomap_full` 时日志 “No octomap received”，虽 `/robot/octomap_full` 有数据。
+4. `verify_fkie_action` 原用原点 `±5` 边界，相机在 `(-5.36,-5.685)` 外 → “camera pose is not inside the polygon” → `goals=0`。改为官方 ROI 后 `goals=1`，`VERIFY_FKIE_NONEMPTY_GOALS`。
+
+证据：`logs/fkie_effective_nbv_run6.log`，`data/metrics/fkie_effective_nbv/`。
+
+### SSMI：octomap 增长与路径一次性发布
+
+- T0/T1（约 15s）`/octomap_full` data_len 增长已验证。
+- `/planner/path` 存在但常只发一次；后启动的 `wait_for_message` 易漏。改为 planner 启动即 recorder → 收到 10 poses，`SSMI_EFFECTIVE_OK`。
+
+证据：`logs/ssmi_effective/run3.log`，`data/metrics/ssmi_effective/`。

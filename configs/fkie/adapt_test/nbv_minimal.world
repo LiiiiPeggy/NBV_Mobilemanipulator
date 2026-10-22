@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<!-- ADAPTATION TEST: minimal Gazebo Classic world for FKIE NBV.
+     Not the official mobile-manipulator stack. Provides depth camera + obstacles. -->
+<sdf version="1.6">
+  <world name="nbv_minimal">
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://sun</uri></include>
+
+    <!-- Obstacles near camera for free-space / frontier gain -->
+    <model name="box_front">
+      <static>true</static>
+      <pose>-5.3 -3.5 0.4 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.6 0.4 0.8</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.6 0.4 0.8</size></box></geometry>
+          <material><ambient>0.8 0.2 0.2 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    <model name="box_left">
+      <static>true</static>
+      <pose>-3.8 -5.6 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.5 0.5 1.0</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.5 0.5 1.0</size></box></geometry>
+          <material><ambient>0.2 0.6 0.8 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    <model name="box_right">
+      <static>true</static>
+      <pose>-6.8 -5.6 0.35 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>0.4 0.4 0.7</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.4 0.4 0.7</size></box></geometry>
+          <material><ambient>0.2 0.8 0.3 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+    <model name="wall_back">
+      <static>true</static>
+      <pose>-5.3 -7.8 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>4.0 0.2 1.5</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>4.0 0.2 1.5</size></box></geometry>
+          <material><ambient>0.6 0.6 0.6 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Fixed RGB-D camera (gazebo_ros_openni_kinect) at ROI center.
+         Pose inside default planner_boundary of nbv_planner_freespace_fast.yaml -->
+    <model name="nbv_depth_cam">
+      <static>true</static>
+      <pose>-5.36 -5.685 1.0 0 0.35 0</pose>
+      <link name="link">
+        <inertial><mass>0.1</mass><inertia>
+          <ixx>0.001</ixx><iyy>0.001</iyy><izz>0.001</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia></inertial>
+        <visual name="v">
+          <geometry><box><size>0.08 0.12 0.05</size></box></geometry>
+          <material><ambient>0.1 0.1 0.1 1</ambient></material>
+        </visual>
+        <sensor name="camera" type="depth">
+          <always_on>true</always_on>
+          <update_rate>10</update_rate>
+          <camera>
+            <horizontal_fov>1.3962634</horizontal_fov>
+            <image>
+              <width>640</width>
+              <height>480</height>
+              <format>R8G8B8</format>
+            </image>
+            <clip><near>0.1</near><far>5.0</far></clip>
+          </camera>
+          <plugin name="cam" filename="libgazebo_ros_openni_kinect.so">
+            <alwaysOn>true</alwaysOn>
+            <updateRate>10.0</updateRate>
+            <cameraName>realsense</cameraName>
+            <imageTopicName>color/image_raw</imageTopicName>
+            <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
+            <depthImageTopicName>depth/image_raw</depthImageTopicName>
+            <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+            <pointCloudTopicName>depth/points</pointCloudTopicName>
+            <frameName>realsense_depth_optical_frame</frameName>
+            <pointCloudCutoff>0.15</pointCloudCutoff>
+            <pointCloudCutoffMax>4.5</pointCloudCutoffMax>
+            <distortionK1>0.0</distortionK1>
+            <distortionK2>0.0</distortionK2>
+            <distortionK3>0.0</distortionK3>
+            <distortionT1>0.0</distortionT1>
+            <distortionT2>0.0</distortionT2>
+            <CxPrime>0</CxPrime>
+            <Cx>0</Cx>
+            <Cy>0</Cy>
+            <focalLength>0</focalLength>
+            <hackBaseline>0</hackBaseline>
+          </plugin>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
