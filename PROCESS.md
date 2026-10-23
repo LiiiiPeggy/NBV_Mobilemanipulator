@@ -275,3 +275,9 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - GSAM 单帧失败分析：TP=4 FN 主因 B（漏检）与 F（定位/关联）→ `reports/grounded_sam_object_failure_analysis.md`。
 - 三视角 bake 记忆：naive FP25→memory FP6，TP=5 → `reports/multiview_object_memory.md`。
 - 一键评测：`run_object_discovery_benchmark.sh` → `reports/object_discovery_benchmark.md`。
+
+## 2026-10-23 REMANI Stage 4/5
+
+- `nbv_fkie` 内 `catkin_make` 编译 `third_party/wbc/remani_planner`（需 `libompl-dev`）。
+- 独立 `ROS_MASTER_URI=:11312` 启动 `remani_sim.launch`；`/ee_goal` 订阅者为 `remani_planner_node`；发布后日志 `[EE GOAL] committed`。
+- Warehouse Mode B / FKIE 真运动闭环未做：REMANI `fake_mm` 与 FKIE Gazebo 未融合；Stage 5 记阻塞。

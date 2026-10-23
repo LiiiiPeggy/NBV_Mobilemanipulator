@@ -120,7 +120,8 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | Grounded-SAM | NBV vendor + checkpoints；`.conda_envs/nbv_perception`；禁止 DovSG 运行时依赖 |
 | 对象记忆 | `perception/object_memory.py`（扩展字段 + confirm）；多视角 `run_multiview_ycb_capture.sh`（`AGX_ARM_POSE` bake） |
 | 评测 | `evaluate_object_discovery.py` + `run_object_discovery_benchmark.sh`；正式 **0.15 m**；召回分母=全场景 GT |
-| REMANI | `/ee_goal` PoseStamped `world`；FSM 需 odom+js、`target_type!=PRESET`；wbc@`remani-real-implementation`（gitignore） |
+| REMANI | `/ee_goal` PoseStamped `world`；FSM 需 odom+js、`target_type!=PRESET`；wbc@`remani-real-implementation`（gitignore）。**已验证**：`remani_sim` 在独立 master 上对 `/ee_goal` 返回 `[EE GOAL] committed`。Warehouse Mode B 未接 |
+
 
 **Mode A 约束**：static 冻结关节 → 须 URDF bake；连杆合并后用 model×TF 与 gripper tip 校验。相机朝向已与 optical TF 对齐后，物体须落在真实视锥（光轴探针/GT 反投影），禁止用错误 TF 硬塞物体。
 
