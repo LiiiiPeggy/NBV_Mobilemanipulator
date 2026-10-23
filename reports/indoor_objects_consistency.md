@@ -1,5 +1,10 @@
 # 室内多对象场景一致性
 
+## 仓库原场景 vs 实验物体
+
+`warehouse_icra_large_viz.world` 上层货架层板**默认为空**；地面旁有 `big_box*`。  
+实验用彩色球 / YCB 由 `primitive_debug` 或 `ycb` 布局另行 spawn，不会自动出现在货架层上。
+
 ## 场景分离
 
 | scene_kind | 路径 | 说明 |

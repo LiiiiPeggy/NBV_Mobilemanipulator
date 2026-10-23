@@ -205,3 +205,10 @@ Gazebo depth 沿传感器 **+X**；旧 `<pose>… -π/2 0 -π/2` 把传感器系
 ### 场景分离
 
 `primitive_debug/` vs `ycb/`；min_loop `SCENE_KIND` + 正式 `DIST_THRESH=0.15`。
+
+---
+
+## 2026-10-23 spawn Z 轮胎穿地
+
+`z=0.36` 时 `*_wheel_link` 中心≈0.10 m，而 `fr_wheel_link.STL` 半径≈0.153 m → 胎底约 −0.05 m。  
+**修复**：spawn YAML 改为 `z=0.42`；实测胎底≈+0.007 m。历史选 0.36 是为避免 z=0.05 穿地弹起，仍低估了轮半径。

@@ -6,6 +6,8 @@ arm_pose: configs/fkie/agx_adapt/config/arm_view_pose.yaml
 spawn:
   x: -2.10
   y: -5.89
-  z: 0.36
+  # Wheel mesh radius ≈0.153 m; with base_z=0.36 wheel center≈0.10 → sinks ~5 cm.
+  # base_z=0.42 puts wheel bottom ≈ ground (+small clearance). Mode A static.
+  z: 0.42
   yaw: 2.833   # ~162 deg, face shelf toward (-4.9,-5.0)
-notes: "along≈1.5m lat≈-2.53m in shelf frame; clearance search 2026-10-23."
+notes: "along≈1.5m lat≈-2.53m in shelf frame; clearance search 2026-10-23. z from wheel STL radius."

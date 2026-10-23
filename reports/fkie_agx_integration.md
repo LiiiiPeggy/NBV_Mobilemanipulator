@@ -8,8 +8,8 @@
 
 | 项 | 结果 | 证据 |
 |----|------|------|
-| P0 整机不倾倒 | **通过** roll=0 pitch=0，z=0.36 | `data/metrics/fkie_agx_warehouse_nbv/model_pose.txt` |
-| P0 TF 单一权威 | **通过** world→base 静态 TF；单路 `/joint_states` | diag TF `world->base_link=(-5.36,-5.685,0.36)` |
+| P0 整机不倾倒 | **通过** roll=0 pitch=0；spawn z 现为 **0.42**（旧 0.36 轮胎穿地） | 现见 `reports/agx_scene_geometry_debug.md` |
+| P0 TF 单一权威 | **通过** world→base 静态 TF；单路 `/joint_states` | aisle_safe：`(-2.1,-5.89,0.42)` |
 | P0 CamView 无 TF 遮挡 | **通过**（现已合并为单 RViz：`agx_nbv.rviz` 用 Image 面板，Camera overlay 关闭） | `configs/fkie/agx_adapt/rviz/agx_nbv.rviz` |
 | P0 Gazebo 可见 AGX+货箱 | **通过** model `agx_ranger_cr10`；60 boxes | 运行时 inventory；`warehouse_icra_large_viz.world` |
 | P1 AGX 仓库非空 NBV | **通过** goals=1 | `FKIE_AGX_WAREHOUSE_NBV_OK`；GOAL `(-4.419,-6.198,1.609)` |

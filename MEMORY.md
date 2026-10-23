@@ -89,8 +89,9 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 ## 8. AGX 适配（Mode A 已验证 + 2026-10-23 几何修复）
 
 - 源码：`third_party/agx`（gitignore）；URDF `rangerboxcr10lidar_description/urdf/rangercr10lidar.urdf`。
-- Mode A（默认）：`<static>true</static>`；spawn `z≈0.36`；**臂关节须 bake 为 fixed**（`-J`/`set_model_configuration` 对 static 无效）；静态 `world→base_link`；无 gazebo js/p3d。
-- Spawn 配置（勿混用）：`SPAWN_PROFILE=baseline|aisle_safe` → `configs/fkie/agx_adapt/config/spawn_warehouse_*.yaml`；环境变量 `AGX_SPAWN_{X,Y,Z,YAW}` 可覆盖。baseline 与货架 OBB 重叠（仅作历史回归）；**aisle_safe** `(-2.10,-5.89,yaw=2.833)` OBB 无重叠。
+- Mode A（默认）：`<static>true</static>`；spawn **`z≈0.42`**（`fr_wheel` STL 半径≈0.153 m；旧 z=0.36 时轮心≈0.10→穿地约 5 cm）；**臂关节须 bake 为 fixed**；静态 `world→base_link`；无 gazebo js/p3d。
+- Spawn 配置（勿混用）：`SPAWN_PROFILE=baseline|aisle_safe` → `configs/fkie/agx_adapt/config/spawn_warehouse_*.yaml`；`AGX_SPAWN_{X,Y,Z,YAW}` 可覆盖。baseline XY 与货架 OBB 重叠（仅历史回归）；**aisle_safe** `(-2.10,-5.89,yaw=2.833)` 底盘 OBB 无重叠。
+- 仓库 `warehouse_icra_large_viz.world`：**上层货架层板默认无货物**（全图无 z>1.2 的货模型）；仅货架旁地面有 `big_box*`（z≈0.64）。层上物体需另 spawn（primitive/YCB），不是原 world 自带。
 - **D455 传感器**：Gazebo depth 沿传感器 **+X** 看。`<pose>` 不得再用 optical 的 `(-π/2,0,-π/2)`（会相对 TF optical **+Z** 偏 90°）。正确：`d455_link` 上 `<pose>0 0 0 0 0 0</pose>` + `frameName=d455_depth_optical_frame`（link +X = optical +Z）。证据：`reports/d455_pointcloud_tf_debug.md`。
 - 定位默认 `--world-tf-mode tf`；`T_world_cam_calib.json` 仅历史调试，禁止再当权威外参。
 - Mode B：`--mode dynamic`（物理 + js/p3d），需后续控制器，**未验收**。

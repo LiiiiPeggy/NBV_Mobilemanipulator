@@ -16,6 +16,7 @@
 | FKIE / SSMI Docker 与有效基线 | 已验证（最小 world） | 最小 world 回归 `goals=2`（历史） |
 | **AGX Mode A 直立 + 关节烘焙** | **已验证** | bake fixed joints；gripper TF↔Gazebo ~1e-6 m |
 | **货架外安全 spawn（aisle_safe）** | **已验证** | OBB clear；俯视图 `reports/agx_geometry_shots/spawn_clearance_topdown.png` |
+| **轮胎贴地 spawn Z** | **已验证** | `z=0.42`；胎底≈+0.007 m（旧 0.36 穿地约 5 cm）；见 `reports/agx_scene_geometry_debug.md` |
 | **D455 Gazebo 朝向 = optical TF** | **已验证** | 探针绿球中心≈(320,240)，深度≈1.25 m；见 `reports/d455_pointcloud_tf_debug.md` |
 | **GT 深度+TF 定位** | **已验证** | median_err≈0.069 m，9/10≤0.10 m |
 | **场景 primitive / YCB 分离** | **已落地** | `primitive_debug/` 与 `ycb/` 目录；min_loop `SCENE_KIND` |
