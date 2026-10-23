@@ -5,43 +5,31 @@
 
 ## 研究目标与阶段
 
-**目标**：AGX（Ranger+CR10）+ FKIE/SSMI 仿真主动探索；独立 Grounded-SAM 感知；后续 REMANI 运动后端与多对象评测。
+**目标**：AGX + FKIE/SSMI 主动探索；独立 Grounded-SAM；真实 YCB 多对象场景可视化与评测；后续 REMANI。
 
-**当前阶段**：正确光学几何下 aisle_safe FKIE 非空 goals 已恢复；GDINO+SAM2 已 vendored 并在 NBV 自有环境独立推理；`/ee_goal` 桥接已发布，REMANI 执行仍待接。
+**当前阶段**：YCB 对象已在 Gazebo **真实 Spawn 且 D455 可见**；一键入口 `start_fkie_agx_ycb_demo.sh` 可用。REMANI 执行仍待接。
 
 ## 已完成（有验证证据）
 
 | 项 | 验证状态 | 证据 |
 |----|----------|------|
-| FKIE / SSMI Docker 与有效基线 | 已验证（最小 world） | 最小 world 回归 `goals=2`（历史） |
-| **AGX Mode A 直立 + 关节烘焙** | **已验证** | bake fixed joints；gripper TF↔Gazebo ~1e-6 m |
-| **货架外安全 spawn（aisle_safe）** | **已验证** | OBB clear；`spawn_clearance_topdown.png` |
-| **轮胎贴地 spawn Z** | **已验证** | `z=0.42`；见 `reports/agx_scene_geometry_debug.md` |
-| **D455 Gazebo 朝向 = optical TF** | **已验证** | `reports/d455_pointcloud_tf_debug.md` |
-| **P1-R 正确光学下 aisle_safe NBV** | **已验证** | `goals=1`，GOAL≈(-3.020,-5.294,1.609)；`reports/fkie_corrected_optical_nbv.md` |
-| **YCB 布局与 primitive 分离** | **已落地** | `ycb/layouts/seed42.json`（桌+架+地）；consistency OK |
-| **P3 Grounded-SAM 独立 vendoring** | **已验证** | `perception/vendor/*` + `checkpoints/`；`PERCEPTION_INDEPENDENCE_OK`；GPU smoke LOAD≈3s / INFER≈0.76s / ~2.7GB |
-| **P4 `/ee_goal` 桥接发布** | **半验证** | 已 publish；无 REMANI 订阅者；`reports/mode_b_remani_ee_goal.md` |
-
-## FKIE 仓库 NBV（边界）
-
-| 配置 | 结果 | 说明 |
-|------|------|------|
-| 错误 90° 传感器 pose（历史） | `goals=1` | **几何无效**，禁止回退 |
-| 修光轴后未调 ROI（旧） | `goals=0` | 已由 aisle_safe 臂姿+ROI 东界重测取代 |
-| **修光轴 + aisle_safe 臂/ROI** | **`goals=1`** | `camera_pose`=`d455_depth_optical_frame` |
+| AGX Mode A / aisle_safe / D455 optical | 已验证 | 既有 geometry 报告 |
+| P1-R aisle_safe NBV `goals=1` | 已验证 | `reports/fkie_corrected_optical_nbv.md` |
+| Grounded-SAM NBV 独立 vendor | 已验证 | `reports/grounded_sam_integration.md` |
+| **YCB 真实 Spawn + GUI/D455 可见** | **已验证** | `SPAWN 13/13`；`d455_rgb_seed42.png` 可见桌面糖盒/罐头/碗/香蕉/苹果等；`reports/ycb_gazebo_visibility_validation.md` |
+| YCB@0.15 GSAM 基础发现率 | 初步 | tp=2 recall≈0.18 precision≈0.29 mean_err≈0.023 m |
+| `/ee_goal` 桥接 | 半验证 | 已 publish；无 REMANI 订阅 |
 
 ## 部分完成 / 阻塞
 
 | 项 | 说明 |
 |----|------|
-| 正式 YCB+GSAM 发现率评测 | 布局/工具就绪；待 spawn YCB + 多视角 `grounded_sam` 抓数 |
-| Mode B 物理 bringup | 脚本就绪；本轮未切 dynamic（保留 Mode A FKIE） |
-| REMANI 执行闭环 | wbc 在仓；`/ee_goal` 无执行节点订阅 |
-| GDINO CUDA `_C` 扩展 | 未编译；GPU 上走 PyTorch MSDA fallback（可用） |
+| 货架层物体高度 | 部分沿板高度近似，可能略浮空；需按货架板实测再精调 |
+| 实时 `grounded_sam` ROS 节点 | 当前为 offline GSAM + ROS 深度定位；nbv_perception 无 rospy |
+| Mode B / REMANI 执行 | 未验收 |
 
 ## 下一步
 
-1. aisle_safe 下 spawn YCB → `grounded_sam` 多视角 → eval@0.15 (+0.10/0.35)。  
-2. 启动 REMANI 接收 `/ee_goal`，Mode B 单目标执行。  
-3. （可选）编译 GroundingDINO CUDA ops 以加速。  
+1. 精调货架 z；提高 GSAM 类别词表/阈值后重评。  
+2. 为 nbv_perception 加 rospy 或 JSON 桥，跑 live `grounded_sam`。  
+3. REMANI 订阅 `/ee_goal` + Mode B。  

@@ -1,0 +1,80 @@
+{
+  "tp": 2,
+  "fp": 5,
+  "fn": 9,
+  "precision": 0.2857142857142857,
+  "unique_recall": 0.18181818181818182,
+  "mean_center_error_m": 0.023482187346824904,
+  "matches": [
+    {
+      "pred": 1,
+      "gt": 3,
+      "dist": 0.024451627613562656,
+      "class": "bowl"
+    },
+    {
+      "pred": 2,
+      "gt": 6,
+      "dist": 0.02251274708008715,
+      "class": "apple"
+    }
+  ],
+  "dist_thresh_m": 0.15,
+  "n_gt": 11,
+  "n_pred": 7,
+  "scene_id": "ycb_indoor_seed42",
+  "diagnostics": {
+    "0.1": {
+      "tp": 2,
+      "fp": 5,
+      "fn": 9,
+      "precision": 0.2857142857142857,
+      "unique_recall": 0.18181818181818182,
+      "mean_center_error_m": 0.023482187346824904,
+      "matches": [
+        {
+          "pred": 1,
+          "gt": 3,
+          "dist": 0.024451627613562656,
+          "class": "bowl"
+        },
+        {
+          "pred": 2,
+          "gt": 6,
+          "dist": 0.02251274708008715,
+          "class": "apple"
+        }
+      ],
+      "dist_thresh_m": 0.1
+    },
+    "0.35": {
+      "tp": 3,
+      "fp": 4,
+      "fn": 8,
+      "precision": 0.42857142857142855,
+      "unique_recall": 0.2727272727272727,
+      "mean_center_error_m": 0.12486159621111159,
+      "matches": [
+        {
+          "pred": 1,
+          "gt": 3,
+          "dist": 0.024451627613562656,
+          "class": "bowl"
+        },
+        {
+          "pred": 2,
+          "gt": 6,
+          "dist": 0.02251274708008715,
+          "class": "apple"
+        },
+        {
+          "pred": 3,
+          "gt": 2,
+          "dist": 0.32762041393968494,
+          "class": "bottle"
+        }
+      ],
+      "dist_thresh_m": 0.35
+    }
+  }
+}

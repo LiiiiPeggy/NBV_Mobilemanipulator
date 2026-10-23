@@ -1,0 +1,308 @@
+{
+  "scene_id": "ycb_indoor_seed42",
+  "seed": 42,
+  "source": "gazebo_get_model_state",
+  "n_objects": 11,
+  "n_expected": 11,
+  "missing": [],
+  "complete": true,
+  "objects": [
+    {
+      "instance_id": "obj_00",
+      "gazebo_name": "mo_obj_00",
+      "class_name": "banana",
+      "difficulty": "easy",
+      "pose": {
+        "x": -3.94638,
+        "y": -4.56873,
+        "z": 0.721,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -3.94638,
+        -4.56873,
+        0.741
+      ],
+      "aabb_size_xyz": [
+        0.2,
+        0.05,
+        0.04
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_01",
+      "gazebo_name": "mo_obj_01",
+      "class_name": "can",
+      "difficulty": "easy",
+      "pose": {
+        "x": -4.11625,
+        "y": -4.76069,
+        "z": 0.721,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.09983341664682815,
+        "qw": 0.9950041652780258,
+        "yaw": 0.20000000000000007
+      },
+      "center_xyz": [
+        -4.11625,
+        -4.76069,
+        0.776
+      ],
+      "aabb_size_xyz": [
+        0.07,
+        0.07,
+        0.11
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_02",
+      "gazebo_name": "mo_obj_02",
+      "class_name": "bottle",
+      "difficulty": "easy",
+      "pose": {
+        "x": -4.19592,
+        "y": -4.54755,
+        "z": 0.721,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": -0.09983341664682815,
+        "qw": 0.9950041652780258,
+        "yaw": -0.20000000000000007
+      },
+      "center_xyz": [
+        -4.19592,
+        -4.54755,
+        0.831
+      ],
+      "aabb_size_xyz": [
+        0.08,
+        0.08,
+        0.22
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_03",
+      "gazebo_name": "mo_obj_03",
+      "class_name": "bowl",
+      "difficulty": "medium",
+      "pose": {
+        "x": -3.89136,
+        "y": -4.84195,
+        "z": 0.721,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.14943813247359924,
+        "qw": 0.9887710779360424,
+        "yaw": 0.3000000000000001
+      },
+      "center_xyz": [
+        -3.89136,
+        -4.84195,
+        0.756
+      ],
+      "aabb_size_xyz": [
+        0.16,
+        0.16,
+        0.07
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_04",
+      "gazebo_name": "mo_obj_04",
+      "class_name": "box",
+      "difficulty": "medium",
+      "pose": {
+        "x": -4.25322,
+        "y": -4.80203,
+        "z": 0.721,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": -0.14943813247359924,
+        "qw": 0.9887710779360424,
+        "yaw": -0.3000000000000001
+      },
+      "center_xyz": [
+        -4.25322,
+        -4.80203,
+        0.821
+      ],
+      "aabb_size_xyz": [
+        0.1,
+        0.16,
+        0.2
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_05",
+      "gazebo_name": "mo_obj_05",
+      "class_name": "box",
+      "difficulty": "medium",
+      "pose": {
+        "x": -4.40887,
+        "y": -5.08523,
+        "z": 1.051,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.04997916927067833,
+        "qw": 0.9987502603949663,
+        "yaw": 0.10000000000000002
+      },
+      "center_xyz": [
+        -4.40887,
+        -5.08523,
+        1.151
+      ],
+      "aabb_size_xyz": [
+        0.1,
+        0.16,
+        0.2
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_06",
+      "gazebo_name": "mo_obj_06",
+      "class_name": "apple",
+      "difficulty": "hard",
+      "pose": {
+        "x": -4.53965,
+        "y": -5.31361,
+        "z": 1.051,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": -0.09983341664682815,
+        "qw": 0.9950041652780258,
+        "yaw": -0.20000000000000007
+      },
+      "center_xyz": [
+        -4.53965,
+        -5.31361,
+        1.091
+      ],
+      "aabb_size_xyz": [
+        0.08,
+        0.08,
+        0.08
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_07",
+      "gazebo_name": "mo_obj_07",
+      "class_name": "box",
+      "difficulty": "hard",
+      "pose": {
+        "x": -4.3031,
+        "y": -5.50889,
+        "z": 1.351,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.09983341664682815,
+        "qw": 0.9950041652780258,
+        "yaw": 0.20000000000000007
+      },
+      "center_xyz": [
+        -4.3031,
+        -5.50889,
+        1.451
+      ],
+      "aabb_size_xyz": [
+        0.1,
+        0.16,
+        0.2
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_08",
+      "gazebo_name": "mo_obj_08",
+      "class_name": "bottle",
+      "difficulty": "hard",
+      "pose": {
+        "x": -3.71139,
+        "y": -4.98946,
+        "z": 0.001,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.04997916927067833,
+        "qw": 0.9987502603949663,
+        "yaw": 0.10000000000000002
+      },
+      "center_xyz": [
+        -3.71139,
+        -4.98946,
+        0.111
+      ],
+      "aabb_size_xyz": [
+        0.08,
+        0.08,
+        0.22
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_09",
+      "gazebo_name": "mo_obj_09",
+      "class_name": "bottle",
+      "difficulty": "hard",
+      "pose": {
+        "x": -4.51591,
+        "y": -4.4048,
+        "z": 0.001,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": -0.19866933079506122,
+        "qw": 0.9800665778412416,
+        "yaw": -0.4000000000000001
+      },
+      "center_xyz": [
+        -4.51591,
+        -4.4048,
+        0.111
+      ],
+      "aabb_size_xyz": [
+        0.08,
+        0.08,
+        0.22
+      ],
+      "frame_id": "world"
+    },
+    {
+      "instance_id": "obj_10",
+      "gazebo_name": "mo_obj_10",
+      "class_name": "cone",
+      "difficulty": "easy",
+      "pose": {
+        "x": -4.00564,
+        "y": -4.65624,
+        "z": 0.721,
+        "qx": 0.0,
+        "qy": 0.0,
+        "qz": 0.0,
+        "qw": 1.0,
+        "yaw": 0.0
+      },
+      "center_xyz": [
+        -4.00564,
+        -4.65624,
+        0.921
+      ],
+      "aabb_size_xyz": [
+        0.24,
+        0.24,
+        0.4
+      ],
+      "frame_id": "world"
+    }
+  ]
+}

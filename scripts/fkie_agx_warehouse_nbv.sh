@@ -33,6 +33,10 @@ URDF_GZ=/workspace/configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo.urdf
 PLANNER_YAML_DEFAULT=/workspace/configs/fkie/agx_adapt/config/nbv_planner_agx_warehouse.yaml
 RVIZ_CFG=/workspace/configs/fkie/agx_adapt/rviz/agx_nbv.rviz
 NBV_OCTOMAP_SETTLE_S="${NBV_OCTOMAP_SETTLE_S:-35}"
+# Set SKIP_NBV_ACTION=1 for scene bringup without sending NBV Action (keeps Gazebo alive).
+SKIP_NBV_ACTION="${SKIP_NBV_ACTION:-0}"
+# Extend GAZEBO_MODEL_PATH for optional YCB / local object models (does not spawn them).
+export GAZEBO_MODEL_PATH="/workspace/third_party/gazebo_objects/gazebo_ycb/models:/workspace/configs/fkie/agx_adapt/models:${GAZEBO_MODEL_PATH}"
 
 # Load spawn + arm pose + optional planner from single YAML profile
 eval "$(python3 - <<PY
@@ -332,35 +336,39 @@ for i in $(seq 1 60); do
   sleep 1
 done
 
-# Empty-goal diagnosis before/after action (aisle_safe uses expanded ROI)
-BX=(-8.3603 -1.80 -1.80 -8.3603)
-BY=(-2.6852 -2.6852 -8.6852 -8.6852)
-if [ "${SPAWN_PROFILE}" != "aisle_safe" ]; then
-  BX=(-8.3603 -2.3603 -2.3603 -8.3603)
-  BY=(-2.6852 -2.6852 -8.6852 -8.6852)
-fi
-python3 /workspace/scripts/diagnose_fkie_nbv_empty.py \
-  --out "${EVDIR}/nbv_empty_diag_before.json" \
-  --boundary-x "${BX[@]}" --boundary-y "${BY[@]}" \
-  2>&1 | tee "${EVDIR}/nbv_empty_diag_before.txt" || true
-
-set +e
-# Pass matching Action boundary for aisle_safe
-if [ "${SPAWN_PROFILE}" = "aisle_safe" ]; then
-  python3 /workspace/scripts/verify_fkie_action.py _timeout:=90.0 \
-    _boundary_xy:='[[-8.3603,-2.6852],[-1.80,-2.6852],[-1.80,-8.6852],[-8.3603,-8.6852]]' \
-    2>&1 | tee "${EVDIR}/action_result.txt"
+if [ "${SKIP_NBV_ACTION}" = "1" ]; then
+  echo "[agx-nbv] SKIP_NBV_ACTION=1 — skipping NBV Action (scene bringup mode)"
+  echo "FKIE_AGX_WAREHOUSE_SCENE_READY" | tee "${EVDIR}/RESULT.txt"
 else
-  python3 /workspace/scripts/verify_fkie_action.py _timeout:=90.0 2>&1 | tee "${EVDIR}/action_result.txt"
-fi
-set -e
+  # Empty-goal diagnosis before/after action (aisle_safe uses expanded ROI)
+  BX=(-8.3603 -1.80 -1.80 -8.3603)
+  BY=(-2.6852 -2.6852 -8.6852 -8.6852)
+  if [ "${SPAWN_PROFILE}" != "aisle_safe" ]; then
+    BX=(-8.3603 -2.3603 -2.3603 -8.3603)
+    BY=(-2.6852 -2.6852 -8.6852 -8.6852)
+  fi
+  python3 /workspace/scripts/diagnose_fkie_nbv_empty.py \
+    --out "${EVDIR}/nbv_empty_diag_before.json" \
+    --boundary-x "${BX[@]}" --boundary-y "${BY[@]}" \
+    2>&1 | tee "${EVDIR}/nbv_empty_diag_before.txt" || true
 
-python3 /workspace/scripts/diagnose_fkie_nbv_empty.py \
-  --out "${EVDIR}/nbv_empty_diag_after.json" \
-  --boundary-x "${BX[@]}" --boundary-y "${BY[@]}" \
-  2>&1 | tee "${EVDIR}/nbv_empty_diag_after.txt" || true
+  set +e
+  # Pass matching Action boundary for aisle_safe
+  if [ "${SPAWN_PROFILE}" = "aisle_safe" ]; then
+    python3 /workspace/scripts/verify_fkie_action.py _timeout:=90.0 \
+      _boundary_xy:='[[-8.3603,-2.6852],[-1.80,-2.6852],[-1.80,-8.6852],[-8.3603,-8.6852]]' \
+      2>&1 | tee "${EVDIR}/action_result.txt"
+  else
+    python3 /workspace/scripts/verify_fkie_action.py _timeout:=90.0 2>&1 | tee "${EVDIR}/action_result.txt"
+  fi
+  set -e
 
-python3 - <<'PY' | tee "${EVDIR}/summary.txt"
+  python3 /workspace/scripts/diagnose_fkie_nbv_empty.py \
+    --out "${EVDIR}/nbv_empty_diag_after.json" \
+    --boundary-x "${BX[@]}" --boundary-y "${BY[@]}" \
+    2>&1 | tee "${EVDIR}/nbv_empty_diag_after.txt" || true
+
+  python3 - <<'PY' | tee "${EVDIR}/summary.txt"
 import re, pathlib
 text = pathlib.Path("/workspace/data/metrics/fkie_agx_warehouse_nbv/action_result.txt").read_text()
 m = re.search(r"goals=(\d+)", text)
@@ -372,7 +380,8 @@ print("FKIE_AGX_WAREHOUSE_NBV_OK" if ok else "FKIE_AGX_WAREHOUSE_NBV_PARTIAL_OR_
 pathlib.Path("/workspace/data/metrics/fkie_agx_warehouse_nbv/RESULT.txt").write_text(
   "goals=%d nonempty=%s mode=static\n" % (n, ok))
 PY
-tail -80 "${LOGDIR}/planner.log" | tee "${EVDIR}/planner_tail.txt" >/dev/null || true
+  tail -80 "${LOGDIR}/planner.log" | tee "${EVDIR}/planner_tail.txt" >/dev/null || true
+fi
 
 # Screenshots via ImageMagick if present
 if command -v import >/dev/null 2>&1; then

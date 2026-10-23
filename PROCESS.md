@@ -235,3 +235,21 @@ CUDA 扩展缺失时原代码仍走 `MultiScaleDeformableAttnFunction` 导致 `N
 ### P4：`/ee_goal` 已发布、REMANI 未接
 
 live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info /ee_goal` 无 REMANI 订阅者。Mode A 保留；Mode B dynamic 全量 bringup 留待执行节点就绪。
+
+---
+
+## 2026-10-23 YCB「看不见」根因与修复
+
+### 根因 A：从未 Spawn
+
+`fkie_agx_warehouse_nbv.sh` 不加载对象；min_loop 默认 `primitive_debug`。仅跑仓库脚本时 `mo_*` 数为 0。
+
+### 根因 F：Spawn 成功但在相机背后
+
+首版布局桌在 `(-2.55,-6.55)`，aisle_safe NBV 臂光轴偏角约 140°。Gazebo 内模型存在，D455 RGB 仍只有货架。
+
+### 修复
+
+- `spawn_object_scene.py` fail-closed + 存在/位姿复核；`verify_gazebo_object_scene.py`；GT 缺目标不 OK。
+- `spawn_warehouse_aisle_safe_ycb.yaml` + `arm_observe_table`；布局对准光轴（桌 ~(-4.05,-4.70)）。
+- 一键：`start_fkie_agx_ycb_demo.sh`。证据：`reports/ycb_gazebo_visibility_validation.md`，D455 可见糖盒/罐头/碗/香蕉/苹果等。

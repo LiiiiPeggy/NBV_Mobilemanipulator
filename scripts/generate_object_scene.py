@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate a reproducible multi-object layout near the AGX warehouse ROI.
+"""Generate a reproducible multi-object layout in aisle_safe_ycb optical FOV.
 
-Does NOT write Gazebo ground-truth from assumptions alone — spawn+export_gt
-must refresh poses from /gazebo/get_model_state after spawn.
+Default slots match arm_observe_table / spawn_warehouse_aisle_safe_ycb camera ray
+(~ table at -4.05,-4.70). Re-check angles if arm bake changes.
 """
 from __future__ import print_function
 import argparse
@@ -10,7 +10,6 @@ import json
 import random
 from pathlib import Path
 
-# Catalog: (model_name, class_name, approx_height_m for placing on surfaces)
 YCB = {
     "mustard_bottle": ("bottle", 0.19),
     "bleach_cleanser": ("bottle", 0.25),
@@ -23,43 +22,33 @@ YCB = {
     "bowl": ("bowl", 0.06),
     "apple": ("apple", 0.08),
 }
-
-# Local simple models (not YCB)
-LOCAL = {
-    "traffic_cone": ("cone", 0.40),
-}
+LOCAL = {"traffic_cone": ("cone", 0.40)}
 
 
 def build_layout(seed, n_objects=12, fov_slots_path=None):
     rng = random.Random(seed)
-    # YCB/local: shelf bay + table + floor near aisle_safe spawn (~(-2.10,-5.89), yaw≈2.83).
-    # Separate from primitive_debug layouts (do not overwrite those).
-    table_pose = {"x": -2.55, "y": -6.55, "z": 0.0, "yaw": 0.2}
+    # FOV-aligned table under observe-table optical ray (measured 2026-10-23).
+    table_pose = {"x": -4.05, "y": -4.70, "z": 0.0, "yaw": 0.3}
     table_top_z = 0.72
-    # Approximate mid-shelf height facing robot (warehouse shelf east of aisle).
-    shelf_z = 0.95
+    shelf_z = 1.05
 
     pool = list(YCB.items()) + list(LOCAL.items())
     rng.shuffle(pool)
     chosen = pool[: max(8, min(n_objects, len(pool)))]
 
-    objects = []
     slots = [
-        # table (easy / medium)
-        ("easy", -2.40, -6.40, table_top_z, 0.0),
-        ("easy", -2.55, -6.60, table_top_z, 0.25),
-        ("easy", -2.70, -6.45, table_top_z, -0.2),
-        ("medium", -2.35, -6.25, table_top_z, 0.4),
-        ("medium", -2.80, -6.30, table_top_z, -0.3),
-        # shelf-adjacent (facing aisle_safe camera)
-        ("medium", -3.35, -5.55, shelf_z, 0.1),
-        ("hard", -3.45, -5.85, shelf_z, -0.2),
-        ("hard", -3.25, -6.10, shelf_z + 0.25, 0.3),
-        # floor
-        ("hard", -2.20, -6.90, 0.0, 0.1),
-        ("hard", -2.95, -6.95, 0.0, -0.6),
-        ("medium", -2.15, -6.20, 0.0, 0.5),
-        ("easy", -2.65, -6.65, table_top_z, -0.1),
+        ("easy", -3.95, -4.55, table_top_z, 0.0),
+        ("easy", -4.10, -4.75, table_top_z, 0.2),
+        ("easy", -4.20, -4.55, table_top_z, -0.2),
+        ("medium", -3.90, -4.85, table_top_z, 0.3),
+        ("medium", -4.25, -4.80, table_top_z, -0.3),
+        ("medium", -4.40, -5.10, shelf_z, 0.1),
+        ("hard", -4.55, -5.30, shelf_z, -0.2),
+        ("hard", -4.30, -5.50, shelf_z + 0.30, 0.2),
+        ("hard", -3.70, -5.00, 0.0, 0.1),
+        ("hard", -4.50, -4.40, 0.0, -0.4),
+        ("easy", -4.00, -4.65, table_top_z, 0.0),
+        ("medium", -4.15, -4.90, table_top_z, 0.15),
     ]
     if fov_slots_path:
         p = Path(fov_slots_path)
@@ -71,9 +60,9 @@ def build_layout(seed, n_objects=12, fov_slots_path=None):
                 for i, s in enumerate(data.get("slots", [])[:12]):
                     slots.append((tiers[i % len(tiers)], s["x"], s["y"], s["z"], rng.uniform(-0.3, 0.3)))
 
+    objects = []
     for i, ((model, (cls, h)), slot) in enumerate(zip(chosen, slots)):
         tier, x, y, z, yaw = slot
-        # place object resting: for table/floor z is surface; add small epsilon
         z_place = z + 0.001
         if model == "traffic_cone":
             z_place = max(z, 0.0)
@@ -84,8 +73,8 @@ def build_layout(seed, n_objects=12, fov_slots_path=None):
                 "class_name": cls,
                 "difficulty": tier,
                 "spawn": {
-                    "x": x + rng.uniform(-0.03, 0.03),
-                    "y": y + rng.uniform(-0.03, 0.03),
+                    "x": x + rng.uniform(-0.02, 0.02),
+                    "y": y + rng.uniform(-0.02, 0.02),
                     "z": z_place,
                     "yaw": yaw + rng.uniform(-0.05, 0.05),
                 },
@@ -93,25 +82,12 @@ def build_layout(seed, n_objects=12, fov_slots_path=None):
             }
         )
 
-    # Simple occluder box between robot and one hard object
-    occluders = [
-        {
-            "instance_id": "occluder_01",
-            "model": "cardboard_occluder",
-            "class_name": "occluder",
-            "difficulty": "n/a",
-            "spawn": {"x": -2.75, "y": -6.80, "z": 0.35, "yaw": 0.7},
-            "source": "local",
-            "size": [0.4, 0.08, 0.7],
-        }
-    ]
-
     layout = {
         "scene_id": "ycb_indoor_seed%d" % seed,
         "scene_kind": "ycb",
         "seed": seed,
         "frame_id": "world",
-        "notes": "YCB/local models on table + shelf bay + floor near aisle_safe; GT from Gazebo after spawn. Not primitive_debug.",
+        "notes": "FOV-aligned for aisle_safe_ycb (arm_observe_table). GT from Gazebo after spawn.",
         "furniture": [
             {
                 "instance_id": "table_01",
@@ -122,7 +98,17 @@ def build_layout(seed, n_objects=12, fov_slots_path=None):
             }
         ],
         "objects": objects,
-        "occluders": occluders,
+        "occluders": [
+            {
+                "instance_id": "occluder_01",
+                "model": "cardboard_occluder",
+                "class_name": "occluder",
+                "difficulty": "n/a",
+                "spawn": {"x": -3.75, "y": -4.90, "z": 0.35, "yaw": 0.4},
+                "source": "local",
+                "size": [0.3, 0.06, 0.55],
+            }
+        ],
     }
     return layout
 
@@ -131,17 +117,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--n-objects", type=int, default=12)
-    ap.add_argument(
-        "--out",
-        default="data/scenes/indoor_objects/ycb/layouts/seed42.json",
-    )
-    ap.add_argument(
-        "--fov-slots",
-        default="data/scenes/indoor_objects/layouts/fov_slots_modeA.json",
-        help="Optional JSON of depth-valid placement slots for Mode A camera",
-    )
+    ap.add_argument("--out", default="data/scenes/indoor_objects/ycb/layouts/seed42.json")
+    ap.add_argument("--fov-slots", default="")
     args = ap.parse_args()
-    layout = build_layout(args.seed, args.n_objects, fov_slots_path=args.fov_slots)
+    layout = build_layout(args.seed, args.n_objects, fov_slots_path=args.fov_slots or None)
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(layout, indent=2))

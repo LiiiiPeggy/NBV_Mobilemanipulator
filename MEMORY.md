@@ -115,7 +115,7 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | 项 | 内容 |
 |----|------|
 | 对象资产 | `scripts/fetch_object_models.sh` → `third_party/gazebo_objects/gazebo_ycb`（gitignore）；本地 `configs/fkie/agx_adapt/models/{simple_table,traffic_cone,cardboard_occluder}` |
-| 布局/真值 | 分目录：`primitive_debug/`（彩色球）与 `ycb/`（`generate_object_scene.py` 桌+架+地）；`export_object_gt.py` 真值仅评测用 |
+| 布局/真值 | 分目录：`primitive_debug/` 与 `ycb/`；**YCB 须 Spawn 后才在 Gazebo 可见**（`fkie_agx_warehouse_nbv.sh` 不自动加载）。一键：`scripts/start_fkie_agx_ycb_demo.sh`（`SPAWN_PROFILE=aisle_safe_ycb` + `arm_observe_table`）。布局须对准观察臂光轴（表在 ~(-4.05,-4.70)），否则 Spawn 成功但 D455 看不见 |
 | 感知 | `perceive_rgbd_objects.py` backend：`depth`/`color`/`yolo`/`grounded_sam`；默认 `--world-tf-mode tf`；ApproximateTimeSynchronizer |
 | Grounded-SAM | **NBV 自有**：`perception/vendor/{GroundingDINO,segment-anything-2}` + `checkpoints/`；env `.conda_envs/nbv_perception`；**禁止**运行时依赖 DovSG 路径/env/挂载；独立性 `scripts/verify_perception_independence.sh` |
 | 权重清单 | `checkpoints/CHECKSUMS.sha256`；大权重 gitignore；复制来源见 `perception/NOTICE` |

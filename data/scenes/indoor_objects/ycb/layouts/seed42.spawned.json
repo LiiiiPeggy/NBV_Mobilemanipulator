@@ -1,0 +1,512 @@
+{
+  "layout": "/workspace/data/scenes/indoor_objects/ycb/layouts/seed42.json",
+  "scene_id": "ycb_indoor_seed42",
+  "scene_kind": "ycb",
+  "n_requested": 13,
+  "n_ok": 13,
+  "n_fail": 0,
+  "n_required_targets": 11,
+  "n_required_ok": 11,
+  "missing_in_world": [],
+  "world_model_names": [
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_0",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_1",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_10",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_11",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_12",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_13",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_14",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_15",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_16",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_0",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_1",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_10",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_11",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_12",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_13",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_14",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_15",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_2",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_3",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_4",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_5",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_6",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_7",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_8",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_17_clone_9",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_2",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_3",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_4",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_5",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_6",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_7",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_8",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_0_clone_9",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_1",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_0",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_1",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_2",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_3",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_4",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_5",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_6",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_6_clone",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_6_clone_0",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_6_clone_1",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_7",
+    "Big box 4_clone_1_clone_clone_3_clone_clone_1_clone_0_clone_clone_3_clone_8",
+    "Floor_room",
+    "Floor_room_0",
+    "Floor_room_0_clone",
+    "Floor_room_0_clone_0",
+    "Floor_room_0_clone_1",
+    "Floor_room_0_clone_2",
+    "Floor_room_0_clone_3",
+    "Floor_room_0_clone_4",
+    "Floor_room_0_clone_5",
+    "Shelves high",
+    "Shelves high_clone",
+    "Shelves high_clone_clone",
+    "Shelves high_clone_clone_0",
+    "Shelves high_clone_clone_0_clone",
+    "Shelves high_clone_clone_1",
+    "Shelves high_clone_clone_1_clone_clone",
+    "Shelves high_clone_clone_1_clone_clone_0",
+    "Shelves high_clone_clone_2",
+    "Shelves high_clone_clone_2_clone",
+    "agx_ranger_cr10",
+    "big_box3_0_clone_clone_clone_clone_clone_clone_clone",
+    "big_box3_0_clone_clone_clone_clone_clone_clone_clone_0",
+    "big_box3_0_clone_clone_clone_clone_clone_clone_clone_clone",
+    "big_box3_0_clone_clone_clone_clone_clone_clone_clone_clone_0",
+    "big_box3_0_clone_clone_clone_clone_clone_clone_clone_clone_1",
+    "big_box3_0_clone_clone_clone_clone_clone_clone_clone_clone_2",
+    "ground_plane",
+    "mo_obj_00",
+    "mo_obj_01",
+    "mo_obj_02",
+    "mo_obj_03",
+    "mo_obj_04",
+    "mo_obj_05",
+    "mo_obj_06",
+    "mo_obj_07",
+    "mo_obj_08",
+    "mo_obj_09",
+    "mo_obj_10",
+    "mo_occluder_01",
+    "mo_table_01"
+  ],
+  "spawned": [
+    {
+      "gazebo_name": "mo_table_01",
+      "instance_id": "table_01",
+      "model": "simple_table",
+      "class_name": "table",
+      "source": "local",
+      "difficulty": null,
+      "layout_spawn": {
+        "x": -4.05,
+        "y": -4.7,
+        "z": 0.0,
+        "yaw": 0.3
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.05,
+        "y": -4.7,
+        "z": 0.0
+      },
+      "pose_delta": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_00",
+      "instance_id": "obj_00",
+      "model": "banana",
+      "class_name": "banana",
+      "source": "ycb",
+      "difficulty": "easy",
+      "layout_spawn": {
+        "x": -3.9463802995020387,
+        "y": -4.568728692820729,
+        "z": 0.721,
+        "yaw": 0.0
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -3.94638,
+        "y": -4.56873,
+        "z": 0.721
+      },
+      "pose_delta": {
+        "dx": 2.995020387253078e-07,
+        "dy": 1.3071792714924868e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_01",
+      "instance_id": "obj_01",
+      "model": "tomato_soup_can",
+      "class_name": "can",
+      "source": "ycb",
+      "difficulty": "easy",
+      "layout_spawn": {
+        "x": -4.116252190405536,
+        "y": -4.76069356426437,
+        "z": 0.721,
+        "yaw": 0.2
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.11625,
+        "y": -4.76069,
+        "z": 0.721
+      },
+      "pose_delta": {
+        "dx": 2.190405536062201e-06,
+        "dy": 3.5642643698707843e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_02",
+      "instance_id": "obj_02",
+      "model": "windex_bottle",
+      "class_name": "bottle",
+      "source": "ycb",
+      "difficulty": "easy",
+      "layout_spawn": {
+        "x": -4.195919250838001,
+        "y": -4.5475501974824555,
+        "z": 0.721,
+        "yaw": -0.2
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.19592,
+        "y": -4.54755,
+        "z": 0.721
+      },
+      "pose_delta": {
+        "dx": 7.491619991029097e-07,
+        "dy": 1.9748245527750896e-07,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_03",
+      "instance_id": "obj_03",
+      "model": "bowl",
+      "class_name": "bowl",
+      "source": "ycb",
+      "difficulty": "medium",
+      "layout_spawn": {
+        "x": -3.891359215483104,
+        "y": -4.84194700105639,
+        "z": 0.721,
+        "yaw": 0.3
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -3.89136,
+        "y": -4.84195,
+        "z": 0.721
+      },
+      "pose_delta": {
+        "dx": 7.845168963349636e-07,
+        "dy": 2.9989436098887268e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_04",
+      "instance_id": "obj_04",
+      "model": "sugar_box",
+      "class_name": "box",
+      "source": "ycb",
+      "difficulty": "medium",
+      "layout_spawn": {
+        "x": -4.253219207161534,
+        "y": -4.802031638148645,
+        "z": 0.721,
+        "yaw": -0.3
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.25322,
+        "y": -4.80203,
+        "z": 0.721
+      },
+      "pose_delta": {
+        "dx": 7.928384659905419e-07,
+        "dy": 1.6381486451777505e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_05",
+      "instance_id": "obj_05",
+      "model": "gelatin_box",
+      "class_name": "box",
+      "source": "ycb",
+      "difficulty": "medium",
+      "layout_spawn": {
+        "x": -4.408872371670774,
+        "y": -5.085227987168282,
+        "z": 1.051,
+        "yaw": 0.1
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.40887,
+        "y": -5.08523,
+        "z": 1.051
+      },
+      "pose_delta": {
+        "dx": 2.3716707735488285e-06,
+        "dy": 2.01283171819e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_06",
+      "instance_id": "obj_06",
+      "model": "apple",
+      "class_name": "apple",
+      "source": "ycb",
+      "difficulty": "hard",
+      "layout_spawn": {
+        "x": -4.539647705314809,
+        "y": -5.313613627344925,
+        "z": 1.051,
+        "yaw": -0.2
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.53965,
+        "y": -5.31361,
+        "z": 1.051
+      },
+      "pose_delta": {
+        "dx": 2.294685191195356e-06,
+        "dy": 3.6273449248724887e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_07",
+      "instance_id": "obj_07",
+      "model": "cracker_box",
+      "class_name": "box",
+      "source": "ycb",
+      "difficulty": "hard",
+      "layout_spawn": {
+        "x": -4.3030954240738595,
+        "y": -5.508885146333134,
+        "z": 1.351,
+        "yaw": 0.2
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.3031,
+        "y": -5.50889,
+        "z": 1.351
+      },
+      "pose_delta": {
+        "dx": 4.575926140226727e-06,
+        "dy": 4.853666865756168e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_08",
+      "instance_id": "obj_08",
+      "model": "mustard_bottle",
+      "class_name": "bottle",
+      "source": "ycb",
+      "difficulty": "hard",
+      "layout_spawn": {
+        "x": -3.7113874495156964,
+        "y": -4.989460234839739,
+        "z": 0.001,
+        "yaw": 0.1
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -3.71139,
+        "y": -4.98946,
+        "z": 0.001
+      },
+      "pose_delta": {
+        "dx": 2.5504843037538194e-06,
+        "dy": 2.348397387663681e-07,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_09",
+      "instance_id": "obj_09",
+      "model": "bleach_cleanser",
+      "class_name": "bottle",
+      "source": "ycb",
+      "difficulty": "hard",
+      "layout_spawn": {
+        "x": -4.515911588939206,
+        "y": -4.404802907974507,
+        "z": 0.001,
+        "yaw": -0.4
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.51591,
+        "y": -4.4048,
+        "z": 0.001
+      },
+      "pose_delta": {
+        "dx": 1.5889392059875718e-06,
+        "dy": 2.907974507415645e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_obj_10",
+      "instance_id": "obj_10",
+      "model": "traffic_cone",
+      "class_name": "cone",
+      "source": "local",
+      "difficulty": "easy",
+      "layout_spawn": {
+        "x": -4.005640824780615,
+        "y": -4.6562417711008415,
+        "z": 0.721,
+        "yaw": 0.0
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -4.00564,
+        "y": -4.65624,
+        "z": 0.721
+      },
+      "pose_delta": {
+        "dx": 8.247806153605097e-07,
+        "dy": 1.7711008410969953e-06,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    },
+    {
+      "gazebo_name": "mo_occluder_01",
+      "instance_id": "occluder_01",
+      "model": "cardboard_occluder",
+      "class_name": "occluder",
+      "source": "local",
+      "difficulty": "n/a",
+      "layout_spawn": {
+        "x": -3.75,
+        "y": -4.9,
+        "z": 0.35,
+        "yaw": 0.4
+      },
+      "ok": true,
+      "msg": "SpawnModel: Successfully spawned entity",
+      "asset_issues": [],
+      "exists_after": true,
+      "pose_ok": true,
+      "actual_pose": {
+        "x": -3.75,
+        "y": -4.9,
+        "z": 0.35
+      },
+      "pose_delta": {
+        "dx": 0.0,
+        "dy": 0.0,
+        "dz": 0.0,
+        "tol_xy": 0.15,
+        "tol_z": 0.25
+      }
+    }
+  ]
+}
