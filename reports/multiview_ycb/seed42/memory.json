@@ -1,0 +1,533 @@
+{
+  "assoc_thresh_m": 0.25,
+  "confirm_min_obs": 2,
+  "n_objects": 11,
+  "n_confirmed": 8,
+  "objects": [
+    {
+      "object_id": "mem_banana_000",
+      "class_id": "banana",
+      "class_name": "banana",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "banana",
+          "conf": 0.8366438746452332
+        },
+        {
+          "view_id": 1,
+          "class": "banana",
+          "conf": 0.8420143127441406
+        },
+        {
+          "view_id": 2,
+          "class": "banana",
+          "conf": 0.7593210339546204
+        }
+      ],
+      "position_world": [
+        -3.7767941423125833,
+        -7.4578553723472245,
+        0.7690747374671006
+      ],
+      "position_uncertainty": 0.10206207261596575,
+      "observation_count": 3,
+      "last_observed_time": 1792750257.896651,
+      "last_camera_pose": [
+        -3.296284889549199,
+        -6.216257577656053,
+        1.59752053542849
+      ],
+      "observation_quality": 0.8420143127441406,
+      "confirmation_status": "confirmed",
+      "association_conflict": false,
+      "view_ids": [
+        0,
+        1,
+        2
+      ],
+      "center_world": [
+        -3.7767941423125833,
+        -7.4578553723472245,
+        0.7690747374671006
+      ],
+      "confidence": 0.8420143127441406,
+      "n_observations": 3
+    },
+    {
+      "object_id": "mem_apple_001",
+      "class_id": "apple",
+      "class_name": "apple",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "apple",
+          "conf": 0.5974088311195374
+        },
+        {
+          "view_id": 0,
+          "class": "apple",
+          "conf": 0.4298499524593353
+        },
+        {
+          "view_id": 1,
+          "class": "apple",
+          "conf": 0.6086372137069702
+        },
+        {
+          "view_id": 1,
+          "class": "apple",
+          "conf": 0.47404879331588745
+        },
+        {
+          "view_id": 2,
+          "class": "apple",
+          "conf": 0.6597510576248169
+        },
+        {
+          "view_id": 2,
+          "class": "apple",
+          "conf": 0.563714861869812
+        }
+      ],
+      "position_world": [
+        -3.71716802802966,
+        -7.567618006375838,
+        0.8081381943349522
+      ],
+      "position_uncertainty": 0.05,
+      "observation_count": 6,
+      "last_observed_time": 1792750257.8967414,
+      "last_camera_pose": [
+        -3.296284889549199,
+        -6.216257577656053,
+        1.59752053542849
+      ],
+      "observation_quality": 0.6597510576248169,
+      "confirmation_status": "confirmed",
+      "association_conflict": true,
+      "view_ids": [
+        0,
+        1,
+        2
+      ],
+      "center_world": [
+        -3.71716802802966,
+        -7.567618006375838,
+        0.8081381943349522
+      ],
+      "confidence": 0.6597510576248169,
+      "n_observations": 6
+    },
+    {
+      "object_id": "mem_bottle_002",
+      "class_id": "bottle",
+      "class_name": "bottle",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "bottle",
+          "conf": 0.4647102952003479
+        },
+        {
+          "view_id": 0,
+          "class": "bottle",
+          "conf": 0.3602959215641022
+        },
+        {
+          "view_id": 1,
+          "class": "bottle",
+          "conf": 0.4553629159927368
+        },
+        {
+          "view_id": 1,
+          "class": "bottle",
+          "conf": 0.3667437732219696
+        },
+        {
+          "view_id": 1,
+          "class": "bottle",
+          "conf": 0.36496105790138245
+        },
+        {
+          "view_id": 2,
+          "class": "bottle",
+          "conf": 0.48038628697395325
+        }
+      ],
+      "position_world": [
+        -4.01364000149654,
+        -7.47883279354554,
+        0.8314534098205568
+      ],
+      "position_uncertainty": 0.05,
+      "observation_count": 6,
+      "last_observed_time": 1792750257.8967857,
+      "last_camera_pose": [
+        -3.296284889549199,
+        -6.216257577656053,
+        1.59752053542849
+      ],
+      "observation_quality": 0.48038628697395325,
+      "confirmation_status": "confirmed",
+      "association_conflict": false,
+      "view_ids": [
+        0,
+        1,
+        2
+      ],
+      "center_world": [
+        -4.01364000149654,
+        -7.47883279354554,
+        0.8314534098205568
+      ],
+      "confidence": 0.48038628697395325,
+      "n_observations": 6
+    },
+    {
+      "object_id": "mem_can_003",
+      "class_id": "can",
+      "class_name": "can",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "can",
+          "conf": 0.44512224197387695
+        },
+        {
+          "view_id": 2,
+          "class": "can",
+          "conf": 0.47342783212661743
+        }
+      ],
+      "position_world": [
+        -3.924739858352102,
+        -7.6307417410657505,
+        0.8003682080710899
+      ],
+      "position_uncertainty": 0.17677669529663687,
+      "observation_count": 2,
+      "last_observed_time": 1792750257.8968303,
+      "last_camera_pose": [
+        -3.296284889549199,
+        -6.216257577656053,
+        1.59752053542849
+      ],
+      "observation_quality": 0.47342783212661743,
+      "confirmation_status": "confirmed",
+      "association_conflict": true,
+      "view_ids": [
+        0,
+        2
+      ],
+      "center_world": [
+        -3.924739858352102,
+        -7.6307417410657505,
+        0.8003682080710899
+      ],
+      "confidence": 0.47342783212661743,
+      "n_observations": 2
+    },
+    {
+      "object_id": "mem_can_004",
+      "class_id": "can",
+      "class_name": "can",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "can",
+          "conf": 0.3508613407611847
+        },
+        {
+          "view_id": 1,
+          "class": "can",
+          "conf": 0.30877724289894104
+        },
+        {
+          "view_id": 2,
+          "class": "can",
+          "conf": 0.3425602912902832
+        }
+      ],
+      "position_world": [
+        -3.85929601897744,
+        -7.319793672935681,
+        0.7844496866092449
+      ],
+      "position_uncertainty": 0.10206207261596575,
+      "observation_count": 3,
+      "last_observed_time": 1792750257.8969178,
+      "last_camera_pose": [
+        -3.296284889549199,
+        -6.216257577656053,
+        1.59752053542849
+      ],
+      "observation_quality": 0.3508613407611847,
+      "confirmation_status": "confirmed",
+      "association_conflict": true,
+      "view_ids": [
+        0,
+        1,
+        2
+      ],
+      "center_world": [
+        -3.85929601897744,
+        -7.319793672935681,
+        0.7844496866092449
+      ],
+      "confidence": 0.3508613407611847,
+      "n_observations": 3
+    },
+    {
+      "object_id": "mem_box_005",
+      "class_id": "box",
+      "class_name": "box",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "box",
+          "conf": 0.29275840520858765
+        },
+        {
+          "view_id": 1,
+          "class": "box",
+          "conf": 0.28592997789382935
+        }
+      ],
+      "position_world": [
+        -4.630318719075114,
+        -6.375386516209421,
+        0.6269558831792881
+      ],
+      "position_uncertainty": 0.17677669529663687,
+      "observation_count": 2,
+      "last_observed_time": 1792750257.8964815,
+      "last_camera_pose": [
+        -3.1328688390055923,
+        -6.213191405645644,
+        1.7545821804823083
+      ],
+      "observation_quality": 0.29275840520858765,
+      "confirmation_status": "confirmed",
+      "association_conflict": false,
+      "view_ids": [
+        0,
+        1
+      ],
+      "center_world": [
+        -4.630318719075114,
+        -6.375386516209421,
+        0.6269558831792881
+      ],
+      "confidence": 0.29275840520858765,
+      "n_observations": 2
+    },
+    {
+      "object_id": "mem_box_006",
+      "class_id": "box",
+      "class_name": "box",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "box",
+          "conf": 0.27897465229034424
+        }
+      ],
+      "position_world": [
+        -3.7159754986207747,
+        -7.320689609418322,
+        0.2410030106529748
+      ],
+      "position_uncertainty": 0.25,
+      "observation_count": 1,
+      "last_observed_time": 1792750257.8960512,
+      "last_camera_pose": [
+        -3.211948749938171,
+        -6.266300723002121,
+        1.6670325217163708
+      ],
+      "observation_quality": 0.27897465229034424,
+      "confirmation_status": "tentative",
+      "association_conflict": false,
+      "view_ids": [
+        0
+      ],
+      "center_world": [
+        -3.7159754986207747,
+        -7.320689609418322,
+        0.2410030106529748
+      ],
+      "confidence": 0.27897465229034424,
+      "n_observations": 1
+    },
+    {
+      "object_id": "mem_can_007",
+      "class_id": "can",
+      "class_name": "can",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "can",
+          "conf": 0.2712259292602539
+        },
+        {
+          "view_id": 1,
+          "class": "can",
+          "conf": 0.26873499155044556
+        },
+        {
+          "view_id": 1,
+          "class": "can",
+          "conf": 0.2576984763145447
+        }
+      ],
+      "position_world": [
+        -4.084232846713611,
+        -7.410094037136429,
+        0.8708392374793711
+      ],
+      "position_uncertainty": 0.10206207261596575,
+      "observation_count": 3,
+      "last_observed_time": 1792750257.8966057,
+      "last_camera_pose": [
+        -3.1328688390055923,
+        -6.213191405645644,
+        1.7545821804823083
+      ],
+      "observation_quality": 0.2712259292602539,
+      "confirmation_status": "confirmed",
+      "association_conflict": true,
+      "view_ids": [
+        0,
+        1
+      ],
+      "center_world": [
+        -4.084232846713611,
+        -7.410094037136429,
+        0.8708392374793711
+      ],
+      "confidence": 0.2712259292602539,
+      "n_observations": 3
+    },
+    {
+      "object_id": "mem_box_008",
+      "class_id": "box",
+      "class_name": "box",
+      "class_evidence": [
+        {
+          "view_id": 0,
+          "class": "box",
+          "conf": 0.2549910843372345
+        },
+        {
+          "view_id": 1,
+          "class": "box",
+          "conf": 0.310014009475708
+        }
+      ],
+      "position_world": [
+        -3.290810489019262,
+        -7.3643151490728735,
+        0.5300507140119082
+      ],
+      "position_uncertainty": 0.17677669529663687,
+      "observation_count": 2,
+      "last_observed_time": 1792750257.8963995,
+      "last_camera_pose": [
+        -3.1328688390055923,
+        -6.213191405645644,
+        1.7545821804823083
+      ],
+      "observation_quality": 0.310014009475708,
+      "confirmation_status": "confirmed",
+      "association_conflict": false,
+      "view_ids": [
+        0,
+        1
+      ],
+      "center_world": [
+        -3.290810489019262,
+        -7.3643151490728735,
+        0.5300507140119082
+      ],
+      "confidence": 0.310014009475708,
+      "n_observations": 2
+    },
+    {
+      "object_id": "mem_box_009",
+      "class_id": "box",
+      "class_name": "box",
+      "class_evidence": [
+        {
+          "view_id": 1,
+          "class": "box",
+          "conf": 0.27753007411956787
+        }
+      ],
+      "position_world": [
+        -3.9412697196110393,
+        -7.410085290019361,
+        0.5437794155822973
+      ],
+      "position_uncertainty": 0.25,
+      "observation_count": 1,
+      "last_observed_time": 1792750257.8965218,
+      "last_camera_pose": [
+        -3.1328688390055923,
+        -6.213191405645644,
+        1.7545821804823083
+      ],
+      "observation_quality": 0.27753007411956787,
+      "confirmation_status": "tentative",
+      "association_conflict": false,
+      "view_ids": [
+        1
+      ],
+      "center_world": [
+        -3.9412697196110393,
+        -7.410085290019361,
+        0.5437794155822973
+      ],
+      "confidence": 0.27753007411956787,
+      "n_observations": 1
+    },
+    {
+      "object_id": "mem_box_010",
+      "class_id": "box",
+      "class_name": "box",
+      "class_evidence": [
+        {
+          "view_id": 2,
+          "class": "box",
+          "conf": 0.41664919257164
+        }
+      ],
+      "position_world": [
+        -4.0850321670485155,
+        -7.4223169242204,
+        0.8605603303269361
+      ],
+      "position_uncertainty": 0.25,
+      "observation_count": 1,
+      "last_observed_time": 1792750257.8968754,
+      "last_camera_pose": [
+        -3.296284889549199,
+        -6.216257577656053,
+        1.59752053542849
+      ],
+      "observation_quality": 0.41664919257164,
+      "confirmation_status": "conflict",
+      "association_conflict": true,
+      "view_ids": [
+        2
+      ],
+      "center_world": [
+        -4.0850321670485155,
+        -7.4223169242204,
+        0.8605603303269361
+      ],
+      "confidence": 0.41664919257164,
+      "n_observations": 1
+    }
+  ]
+}

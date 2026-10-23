@@ -1,0 +1,286 @@
+{
+  "scene_id": "ycb_indoor_seed99",
+  "scene_kind": "ycb",
+  "seed": 99,
+  "frame_id": "world",
+  "table_top_z": 0.74,
+  "notes": "Clear-aisle table (~-3.90,-7.50); table_top_z=0.740 from simple_table collision; spawn Z from per-model contact; table+floor only; arm_observe_aisle_table.yaml.",
+  "furniture": [
+    {
+      "instance_id": "table_01",
+      "model": "simple_table",
+      "class_name": "table",
+      "spawn": {
+        "x": -3.9,
+        "y": -7.5,
+        "z": 0.0,
+        "yaw": 0.2
+      },
+      "source": "local"
+    }
+  ],
+  "objects": [
+    {
+      "instance_id": "obj_00",
+      "model": "bowl",
+      "class_name": "bowl",
+      "difficulty": "easy",
+      "support": "table",
+      "contact": {
+        "z_bottom": -0.027,
+        "kind": "mesh_fallback",
+        "half_xy": [
+          0.08,
+          0.08
+        ]
+      },
+      "spawn": {
+        "x": -3.779075621884098,
+        "y": -7.39398535403491,
+        "z": 0.768,
+        "yaw": -0.04101637010397252
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_01",
+      "model": "banana",
+      "class_name": "banana",
+      "difficulty": "easy",
+      "support": "table",
+      "contact": {
+        "z_bottom": -0.018,
+        "kind": "mesh_fallback",
+        "half_xy": [
+          0.09,
+          0.035
+        ]
+      },
+      "spawn": {
+        "x": -3.9462824103632697,
+        "y": -7.559015956277778,
+        "z": 0.759,
+        "yaw": 0.22222256110103136
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_02",
+      "model": "cracker_box",
+      "class_name": "box",
+      "difficulty": "easy",
+      "support": "table",
+      "contact": {
+        "z_bottom": 0.0,
+        "kind": "box",
+        "half_xy": [
+          0.03,
+          0.079
+        ]
+      },
+      "spawn": {
+        "x": -4.047347784962499,
+        "y": -7.371221579633207,
+        "z": 0.741,
+        "yaw": -0.17116838963778336
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_03",
+      "model": "mustard_bottle",
+      "class_name": "bottle",
+      "difficulty": "medium",
+      "support": "table",
+      "contact": {
+        "z_bottom": 0.0,
+        "kind": "box_comment",
+        "half_xy": [
+          0.029,
+          0.0475
+        ]
+      },
+      "spawn": {
+        "x": -3.7103302374359712,
+        "y": -7.609155234020419,
+        "z": 0.741,
+        "yaw": 0.27125908594748116
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_04",
+      "model": "sugar_box",
+      "class_name": "box",
+      "difficulty": "medium",
+      "support": "table",
+      "contact": {
+        "z_bottom": 0.0,
+        "kind": "box",
+        "half_xy": [
+          0.019,
+          0.0445
+        ]
+      },
+      "spawn": {
+        "x": -4.08115550130742,
+        "y": -7.5896299710460084,
+        "z": 0.741,
+        "yaw": -0.29330849920302127
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_05",
+      "model": "apple",
+      "class_name": "apple",
+      "difficulty": "medium",
+      "support": "table",
+      "contact": {
+        "z_bottom": -0.037,
+        "kind": "mesh_fallback",
+        "half_xy": [
+          0.037,
+          0.037
+        ]
+      },
+      "spawn": {
+        "x": -3.8925110347687766,
+        "y": -7.313499599949558,
+        "z": 0.778,
+        "yaw": 0.11773775203114269
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_06",
+      "model": "bleach_cleanser",
+      "class_name": "bottle",
+      "difficulty": "hard",
+      "support": "table",
+      "contact": {
+        "z_bottom": 0.0,
+        "kind": "box_comment",
+        "half_xy": [
+          0.049,
+          0.0325
+        ]
+      },
+      "spawn": {
+        "x": -3.6923659334028422,
+        "y": -7.485508637636314,
+        "z": 0.741,
+        "yaw": -0.19573485309675395
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_07",
+      "model": "windex_bottle",
+      "class_name": "bottle",
+      "difficulty": "hard",
+      "support": "table",
+      "contact": {
+        "z_bottom": 0.0,
+        "kind": "box",
+        "half_xy": [
+          0.04,
+          0.0525
+        ]
+      },
+      "spawn": {
+        "x": -4.118261441959228,
+        "y": -7.452243820234292,
+        "z": 0.741,
+        "yaw": 0.2362531453293338
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_08",
+      "model": "tomato_soup_can",
+      "class_name": "can",
+      "difficulty": "hard",
+      "support": "floor",
+      "contact": {
+        "z_bottom": 0.0,
+        "kind": "cylinder",
+        "half_xy": [
+          0.033,
+          0.033
+        ]
+      },
+      "spawn": {
+        "x": -3.437005945101162,
+        "y": -7.912575507135223,
+        "z": 0.001,
+        "yaw": 0.10186549790221622
+      },
+      "source": "ycb"
+    },
+    {
+      "instance_id": "obj_09",
+      "model": "traffic_cone",
+      "class_name": "cone",
+      "difficulty": "hard",
+      "support": "floor",
+      "contact": {
+        "z_bottom": 0.0,
+        "kind": "cylinder",
+        "half_xy": [
+          0.12,
+          0.12
+        ]
+      },
+      "spawn": {
+        "x": -3.2090576031195726,
+        "y": -7.65111898631378,
+        "z": 0.001,
+        "yaw": -0.44486822012251254
+      },
+      "source": "local"
+    },
+    {
+      "instance_id": "obj_10",
+      "model": "gelatin_box",
+      "class_name": "box",
+      "difficulty": "easy",
+      "support": "table",
+      "contact": {
+        "z_bottom": 0.0,
+        "kind": "box",
+        "half_xy": [
+          0.0365,
+          0.0425
+        ]
+      },
+      "spawn": {
+        "x": -3.831125808309952,
+        "y": -7.666427236962147,
+        "z": 0.741,
+        "yaw": 0.0215144441729873
+      },
+      "source": "ycb"
+    }
+  ],
+  "occluders": [
+    {
+      "instance_id": "occluder_01",
+      "model": "cardboard_occluder",
+      "class_name": "occluder",
+      "difficulty": "n/a",
+      "spawn": {
+        "x": -3.3499999999999996,
+        "y": -7.45,
+        "z": 0.351,
+        "yaw": 0.4
+      },
+      "source": "local",
+      "size": [
+        0.4,
+        0.08,
+        0.7
+      ]
+    }
+  ]
+}

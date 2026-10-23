@@ -5,31 +5,28 @@
 
 ## 研究目标与阶段
 
-**目标**：AGX + FKIE/SSMI 主动探索；独立 Grounded-SAM；真实 YCB 多对象场景可视化与评测；后续 REMANI。
+**目标**：AGX + FKIE/SSMI 主动探索；独立 Grounded-SAM；YCB 多对象基准；REMANI Mode B 闭环。
 
-**当前阶段**：YCB 对象已在 Gazebo **真实 Spawn 且 D455 可见**；一键入口 `start_fkie_agx_ycb_demo.sh` 可用。REMANI 执行仍待接。
+**当前阶段**：Stage 0–3（摆放 / GSAM 失败分析 / 多视角记忆 / 评测）已有可复现证据。Stage 4–5（REMANI 真运动）进行中。
 
 ## 已完成（有验证证据）
 
 | 项 | 验证状态 | 证据 |
 |----|----------|------|
-| AGX Mode A / aisle_safe / D455 optical | 已验证 | 既有 geometry 报告 |
-| P1-R aisle_safe NBV `goals=1` | 已验证 | `reports/fkie_corrected_optical_nbv.md` |
-| Grounded-SAM NBV 独立 vendor | 已验证 | `reports/grounded_sam_integration.md` |
-| **YCB 真实 Spawn + GUI/D455 可见** | **已验证** | `SPAWN 13/13`；`d455_rgb_seed42.png` 可见桌面糖盒/罐头/碗/香蕉/苹果等；`reports/ycb_gazebo_visibility_validation.md` |
-| YCB@0.15 GSAM 基础发现率 | 初步 | tp=2 recall≈0.18 precision≈0.29 mean_err≈0.023 m |
-| `/ee_goal` 桥接 | 半验证 | 已 publish；无 REMANI 订阅 |
+| 桌出货架 OBB + 接触高度 Spawn | 已验证 | `reports/ycb_scene_placement_validation.md`；seed42/7/99 validate+spawn+verify OK |
+| GSAM 逐对象失败分析 | 已验证 | `reports/grounded_sam_object_failure_analysis.md`；TP=4@0.15（单帧） |
+| 多视角记忆去重 | 已验证 | `reports/multiview_object_memory.md`；naive FP25→memory FP6，TP=5 |
+| 对象发现基准一键评测 | 已验证 | `reports/object_discovery_benchmark.md` |
+| aisle_safe NBV / Grounded-SAM vendor | 已验证 | 既有报告 |
 
 ## 部分完成 / 阻塞
 
 | 项 | 说明 |
 |----|------|
-| 货架层物体高度 | 部分沿板高度近似，可能略浮空；需按货架板实测再精调 |
-| 实时 `grounded_sam` ROS 节点 | 当前为 offline GSAM + ROS 深度定位；nbv_perception 无 rospy |
-| Mode B / REMANI 执行 | 未验收 |
+| REMANI Mode B | wbc 未编译；`/ee_goal` 无订阅者；待 Stage 4 |
+| FKIE→REMANI 真运动闭环 | 依赖 Stage 4 |
 
 ## 下一步
 
-1. 精调货架 z；提高 GSAM 类别词表/阈值后重评。  
-2. 为 nbv_perception 加 rospy 或 JSON 桥，跑 live `grounded_sam`。  
-3. REMANI 订阅 `/ee_goal` + Mode B。  
+1. 编译 `third_party/wbc/remani_planner`，验证 `/ee_goal` committed。  
+2. Mode B dynamic URDF 单目标执行；再接 FKIE 一次闭环。  

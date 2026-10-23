@@ -1,12 +1,12 @@
-# aisle_safe XY/yaw/z, but arm baked to look at YCB table ROI (observe pose).
+# aisle_safe XY/yaw/z, but arm baked to look at clear-aisle YCB table (outside shelf OBB).
 # Used by scripts/start_fkie_agx_ycb_demo.sh only — does not replace FKIE NBV aisle_safe regression.
 scene_id: warehouse_aisle_safe_ycb
 world: configs/fkie/adapt_test/warehouse_icra_large_viz.world
-arm_pose: configs/fkie/agx_adapt/config/arm_observe_table.yaml
+arm_pose: configs/fkie/agx_adapt/config/arm_observe_aisle_table.yaml
 planner_config: configs/fkie/agx_adapt/config/nbv_planner_agx_warehouse_aisle_safe.yaml
 spawn:
   x: -2.10
   y: -5.89
   z: 0.42
   yaw: 2.833
-notes: "Same base as aisle_safe; arm_observe_table looks toward table ROI (~-3.05,-6.37,0.86)."
+notes: "Same base as aisle_safe; arm_observe_aisle_table looks at clear table (~-3.90,-7.50,0.85)."

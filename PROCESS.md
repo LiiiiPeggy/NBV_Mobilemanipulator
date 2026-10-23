@@ -253,3 +253,25 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - `spawn_object_scene.py` fail-closed + 存在/位姿复核；`verify_gazebo_object_scene.py`；GT 缺目标不 OK。
 - `spawn_warehouse_aisle_safe_ycb.yaml` + `arm_observe_table`；布局对准光轴（桌 ~(-4.05,-4.70)）。
 - 一键：`start_fkie_agx_ycb_demo.sh`。证据：`reports/ycb_gazebo_visibility_validation.md`，D455 可见糖盒/罐头/碗/香蕉/苹果等。
+
+## 2026-10-23 桌塞货架底 / 物体悬空
+
+### 根因
+
+1. **FOV 对齐把桌推进了货架**：`(-4.05,-4.70)` 与 `Shelves high` OBB/SAT 重叠（旧 clearance 只保 AGX 底座，不保家具）。
+2. **假货架层高**：`generate_object_scene.py` 用 `shelf_z=1.05/1.35`，仓库货架模型无对应板面 → 物体漂浮。
+3. **`FORCE_RESTART` 未杀旧 gz**：旧光轴仍朝货架，新桌移开后画面仍像「塞进货架」。
+
+### 修复
+
+- 桌 → `(-3.90,-7.50)`（shelf≈2.7 m，nearest big_box≈1.9 m）；物体仅 `z∈{0,0.72}`。
+- `arm_observe_aisle_table.yaml`（解析 URDF FK 搜索）；profile 指向该臂姿。
+- `start_fkie_agx_ycb_demo.sh`：`FORCE_RESTART=1` 先 `fkie_stop_sim` / 清 gz 再 bringup。
+- 证据：`VERIFY_GAZEBO_OBJECT_SCENE_OK`；live `mo_*` 无 `z>0.85`；optical ang≈16°；`reports/ycb_gazebo_shots/d455_rgb_seed42.png`。
+
+## 2026-10-23 Stage 0–3 基准
+
+- 接触高度：`ycb_model_contact_z.py`；`table_top_z=0.74`；seed42/7/99 布局校验与 spawn/verify OK → `reports/ycb_scene_placement_validation.md`。
+- GSAM 单帧失败分析：TP=4 FN 主因 B（漏检）与 F（定位/关联）→ `reports/grounded_sam_object_failure_analysis.md`。
+- 三视角 bake 记忆：naive FP25→memory FP6，TP=5 → `reports/multiview_object_memory.md`。
+- 一键评测：`run_object_discovery_benchmark.sh` → `reports/object_discovery_benchmark.md`。

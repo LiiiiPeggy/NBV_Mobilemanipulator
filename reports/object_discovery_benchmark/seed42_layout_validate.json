@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "n_issues": 0,
+  "issues": [],
+  "table": {
+    "x": -3.9,
+    "y": -7.5,
+    "z": 0.0,
+    "yaw": 0.2
+  },
+  "table_top_z": 0.74,
+  "n_objects": 11,
+  "layout": "/home/ubuntu/locomani/NBV_Mobilemanipulator/data/scenes/indoor_objects/ycb/layouts/seed42.json"
+}

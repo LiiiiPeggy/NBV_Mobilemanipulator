@@ -1,0 +1,110 @@
+{
+  "tp": 4,
+  "fp": 6,
+  "fn": 7,
+  "precision": 0.4,
+  "unique_recall": 0.36363636363636365,
+  "mean_center_error_m": 0.04336962983495139,
+  "matches": [
+    {
+      "pred": 0,
+      "gt": 0,
+      "dist": 0.04002520602304885,
+      "class": "banana"
+    },
+    {
+      "pred": 1,
+      "gt": 6,
+      "dist": 0.014907043998082637,
+      "class": "apple"
+    },
+    {
+      "pred": 3,
+      "gt": 2,
+      "dist": 0.027010912142957037,
+      "class": "bottle"
+    },
+    {
+      "pred": 4,
+      "gt": 1,
+      "dist": 0.09153535717571706,
+      "class": "can"
+    }
+  ],
+  "dist_thresh_m": 0.15,
+  "n_gt": 11,
+  "n_pred": 10,
+  "scene_id": "ycb_indoor_seed42",
+  "diagnostics": {
+    "0.1": {
+      "tp": 4,
+      "fp": 6,
+      "fn": 7,
+      "precision": 0.4,
+      "unique_recall": 0.36363636363636365,
+      "mean_center_error_m": 0.04336962983495139,
+      "matches": [
+        {
+          "pred": 0,
+          "gt": 0,
+          "dist": 0.04002520602304885,
+          "class": "banana"
+        },
+        {
+          "pred": 1,
+          "gt": 6,
+          "dist": 0.014907043998082637,
+          "class": "apple"
+        },
+        {
+          "pred": 3,
+          "gt": 2,
+          "dist": 0.027010912142957037,
+          "class": "bottle"
+        },
+        {
+          "pred": 4,
+          "gt": 1,
+          "dist": 0.09153535717571706,
+          "class": "can"
+        }
+      ],
+      "dist_thresh_m": 0.1
+    },
+    "0.35": {
+      "tp": 4,
+      "fp": 6,
+      "fn": 7,
+      "precision": 0.4,
+      "unique_recall": 0.36363636363636365,
+      "mean_center_error_m": 0.04336962983495139,
+      "matches": [
+        {
+          "pred": 0,
+          "gt": 0,
+          "dist": 0.04002520602304885,
+          "class": "banana"
+        },
+        {
+          "pred": 1,
+          "gt": 6,
+          "dist": 0.014907043998082637,
+          "class": "apple"
+        },
+        {
+          "pred": 3,
+          "gt": 2,
+          "dist": 0.027010912142957037,
+          "class": "bottle"
+        },
+        {
+          "pred": 4,
+          "gt": 1,
+          "dist": 0.09153535717571706,
+          "class": "can"
+        }
+      ],
+      "dist_thresh_m": 0.35
+    }
+  }
+}

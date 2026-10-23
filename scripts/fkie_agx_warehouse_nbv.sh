@@ -63,6 +63,15 @@ RX="${AGX_SPAWN_X:-$RX}"
 RY="${AGX_SPAWN_Y:-$RY}"
 RZ="${AGX_SPAWN_Z:-$RZ}"
 RYAW="${AGX_SPAWN_YAW:-$RYAW}"
+# Multiview Mode A: override baked arm pose YAML (path relative to /workspace or absolute)
+if [[ -n "${AGX_ARM_POSE:-}" ]]; then
+  if [[ "${AGX_ARM_POSE}" = /* ]]; then
+    POSE_YAML="${AGX_ARM_POSE}"
+  else
+    POSE_YAML="/workspace/${AGX_ARM_POSE}"
+  fi
+  echo "[agx-nbv] AGX_ARM_POSE override -> ${POSE_YAML}"
+fi
 
 PIDS=()
 register() { PIDS+=("$1"); }

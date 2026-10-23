@@ -27,10 +27,17 @@ Spawned `simple_table`, `mustard_bottle`, `cracker_box` via `scripts/manual_spaw
 First layout placed the table at `(-2.55,-6.55)` while aisle_safe NBV arm optical axis looked roughly **opposite** (~140° off table).  
 Models **existed in Gazebo** but were outside the D455 FOV (**case F**).
 
-Fix:
+Fix (visibility):
 
-1. Profile `spawn_warehouse_aisle_safe_ycb.yaml` + `arm_observe_table.yaml` (base unchanged).
-2. FOV-aligned layout: table ~`(-4.05,-4.70)`, objects along optical ray (table ang ≈5.5°).
+1. Profile `spawn_warehouse_aisle_safe_ycb.yaml` + observe-arm bake (base unchanged).
+2. FOV-aligned layout so D455 sees YCB.
+
+**Follow-up 2026-10-23 (placement physics):** first FOV table `(-4.05,-4.70)` sat inside `Shelves high` OBB; some props used fake shelf `z=1.05/1.35` (floating). Now:
+
+1. Table `(-3.90,-7.50)` — outside shelf OBB (~2.7 m from `Shelves high`), ≥~1.9 m from nearest `big_box`.
+2. Objects only on table top (`z≈0.72`) or floor (`z≈0`) — no mid-air shelf heights.
+3. Arm: `arm_observe_aisle_table.yaml` (FK optical look-at ang≈16°, dist≈1.6 m).
+4. `FORCE_RESTART=1` in `start_fkie_agx_ycb_demo.sh` now **stops** stale gz before rebake.
 
 ## One-click entry
 

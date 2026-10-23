@@ -1,0 +1,9 @@
+# Oblique observe: slightly lower shoulder than high, same yaw limit.
+# Distinct from front/high for Mode A multiview bake.
+cr10_joint1: 0.85
+cr10_joint2: -1.05
+cr10_joint3: 0.55
+cr10_joint4: 0.0
+cr10_joint5: 1.45
+cr10_joint6: 0.0
+gripper_finger1_joint: 0.0

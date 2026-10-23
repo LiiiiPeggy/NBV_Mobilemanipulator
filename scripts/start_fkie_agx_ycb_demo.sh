@@ -52,18 +52,28 @@ gazebo_up() {
 
 echo "[ycb-demo] checking Gazebo..."
 NEED_BRINGUP=1
-if [[ "${FORCE_RESTART}" != "1" ]] && gazebo_up; then
-  # Reuse only if AGX already uses ycb observe profile (heuristic: skip if FORCE_RESTART)
+if [[ "${FORCE_RESTART}" = "1" ]]; then
+  echo "[ycb-demo] FORCE_RESTART=1 → stop sim before rebake (avoid stale gzserver)"
+  docker exec "${CONTAINER}" bash -lc 'STOP_SIM_KEEP_PID=$$ bash /workspace/scripts/fkie_stop_sim.sh || true; sleep 2; pkill -9 gzserver 2>/dev/null || true; pkill -9 gzclient 2>/dev/null || true; sleep 1' || true
+  NEED_BRINGUP=1
+elif gazebo_up; then
   echo "[ycb-demo] Gazebo up; set FORCE_RESTART=1 to rebake arm to observe-table pose"
   NEED_BRINGUP=0
 fi
-if [[ "${NEED_BRINGUP}" = "1" ]] || [[ "${FORCE_RESTART}" = "1" ]]; then
+if [[ "${NEED_BRINGUP}" = "1" ]]; then
   echo "[ycb-demo] bringing up AGX warehouse profile=${SPAWN_PROFILE} (SKIP_NBV_ACTION=1)..."
+  # Clear stale ready signal: wait until spawn service is DOWN, then start bringup
+  for i in $(seq 1 30); do
+    if ! gazebo_up; then break; fi
+    sleep 1
+  done
   docker exec -d "${CONTAINER}" bash -lc "source /opt/ros/noetic/setup.bash; \
     source /workspace/ws_fkie/devel/setup.bash; \
     export SPAWN_PROFILE=${SPAWN_PROFILE} AGX_MODE=${AGX_MODE} SKIP_NBV_ACTION=1 NBV_OCTOMAP_SETTLE_S=${NBV_OCTOMAP_SETTLE_S:-15}; \
     bash /workspace/scripts/fkie_agx_warehouse_nbv.sh > /workspace/${LOGDIR}/bringup.log 2>&1"
   echo -n "[ycb-demo] waiting for Gazebo"
+  # Require spawn service to appear AFTER bringup (skip first 3s to avoid racing old master)
+  sleep 3
   for i in $(seq 1 180); do
     if gazebo_up; then echo " ready (${i}s)"; break; fi
     echo -n "."

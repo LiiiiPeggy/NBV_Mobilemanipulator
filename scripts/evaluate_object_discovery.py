@@ -95,30 +95,66 @@ def main():
     metrics["diagnostics"] = {
         str(t): match(preds, gts, float(t)) for t in (args.diagnostic_thresh or [])
     }
+    # Per-view breakdown (single-frame detection/localization)
+    metrics["per_view"] = []
+    for view in pred.get("views", []):
+        vp = match(collect_preds({"views": [view]}), gts, args.dist_thresh)
+        metrics["per_view"].append(
+            {
+                "view_id": view.get("view_id"),
+                "n_pred": vp["tp"] + vp["fp"],
+                "tp": vp["tp"],
+                "fp": vp["fp"],
+                "fn": vp["fn"],
+                "precision": vp["precision"],
+                "unique_recall": vp["unique_recall"],
+                "mean_center_error_m": vp["mean_center_error_m"],
+            }
+        )
+    metrics["n_gt_total"] = len(gts)  # formal recall denominator (full scene)
+    metrics["n_views"] = len(pred.get("views", []))
+
     if args.memory_json:
         mem = json.loads(Path(args.memory_json).read_text())
-        mem_preds = [
-            {
-                "class_name": o["class_name"],
-                "center": np.array(o["center_world"], dtype=np.float64),
-                "confidence": o.get("confidence", 0.0),
-                "view_id": 0,
-            }
-            for o in mem.get("objects", [])
-        ]
-        metrics["memory"] = match(mem_preds, gts, args.dist_thresh)
-        metrics["memory"]["n_memory_objects"] = len(mem_preds)
+
+        def _mem_preds(objs):
+            rows = []
+            for o in objs:
+                xyz = o.get("position_world") or o.get("center_world")
+                rows.append(
+                    {
+                        "class_name": o["class_name"],
+                        "center": np.array(xyz, dtype=np.float64),
+                        "confidence": o.get("observation_quality", o.get("confidence", 0.0)),
+                        "view_id": -1,
+                    }
+                )
+            return rows
+
+        all_objs = mem.get("objects", [])
+        metrics["memory"] = match(_mem_preds(all_objs), gts, args.dist_thresh)
+        metrics["memory"]["n_memory_objects"] = len(all_objs)
+        confirmed = [o for o in all_objs if o.get("confirmation_status") == "confirmed"]
+        metrics["memory_confirmed"] = match(_mem_preds(confirmed), gts, args.dist_thresh)
+        metrics["memory_confirmed"]["n_confirmed"] = len(confirmed)
+        metrics["n_duplicates_vs_raw_preds"] = max(0, len(preds) - len(all_objs))
     Path(args.out_json).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out_json).write_text(json.dumps(metrics, indent=2))
-    print(json.dumps({k: metrics[k] for k in ("tp", "fp", "fn", "precision", "unique_recall", "mean_center_error_m")}, indent=2))
+    print(
+        json.dumps(
+            {k: metrics[k] for k in ("tp", "fp", "fn", "precision", "unique_recall", "mean_center_error_m", "n_gt_total")},
+            indent=2,
+        )
+    )
     if args.out_csv:
         with open(args.out_csv, "w") as f:
             w = csv.DictWriter(
                 f,
-                fieldnames=["tp", "fp", "fn", "precision", "unique_recall", "mean_center_error_m", "dist_thresh_m"],
+                fieldnames=["tp", "fp", "fn", "precision", "unique_recall", "mean_center_error_m", "dist_thresh_m", "n_gt_total"],
             )
             w.writeheader()
-            w.writerow({k: metrics.get(k) for k in w.fieldnames})
+            row = {k: metrics.get(k) for k in w.fieldnames}
+            w.writerow(row)
     print("EVALUATE_OBJECT_DISCOVERY_OK")
 
 

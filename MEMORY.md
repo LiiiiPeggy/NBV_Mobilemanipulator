@@ -115,14 +115,12 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | 项 | 内容 |
 |----|------|
 | 对象资产 | `scripts/fetch_object_models.sh` → `third_party/gazebo_objects/gazebo_ycb`（gitignore）；本地 `configs/fkie/agx_adapt/models/{simple_table,traffic_cone,cardboard_occluder}` |
-| 布局/真值 | 分目录：`primitive_debug/` 与 `ycb/`；**YCB 须 Spawn 后才在 Gazebo 可见**（`fkie_agx_warehouse_nbv.sh` 不自动加载）。一键：`scripts/start_fkie_agx_ycb_demo.sh`（`SPAWN_PROFILE=aisle_safe_ycb` + `arm_observe_table`）。布局须对准观察臂光轴（表在 ~(-4.05,-4.70)），否则 Spawn 成功但 D455 看不见 |
-| 感知 | `perceive_rgbd_objects.py` backend：`depth`/`color`/`yolo`/`grounded_sam`；默认 `--world-tf-mode tf`；ApproximateTimeSynchronizer |
-| Grounded-SAM | **NBV 自有**：`perception/vendor/{GroundingDINO,segment-anything-2}` + `checkpoints/`；env `.conda_envs/nbv_perception`；**禁止**运行时依赖 DovSG 路径/env/挂载；独立性 `scripts/verify_perception_independence.sh` |
-| 权重清单 | `checkpoints/CHECKSUMS.sha256`；大权重 gitignore；复制来源见 `perception/NOTICE` |
-| 对象记忆 | `perception/object_memory.py` + `scripts/build_object_memory.py`（assoc 0.25 m） |
-| 评测 | `evaluate_object_discovery.py`；正式 **0.15 m** + 诊断 0.10/0.35；勿读 Gazebo 实例 ID 作检测输入 |
-| REMANI 接口 | `/ee_goal`=`geometry_msgs/PoseStamped`（world）；`nbv_to_remani_ee_goal.py`（已能 publish；执行节点待接） |
-| WBC 克隆 | `third_party/wbc`（gitignore），分支 `remani-real-implementation` |
+| 布局/真值 | YCB 桌+地面：`(-3.90,-7.50)`；`ycb_model_contact_z.py` 按 collision 底面算 Spawn Z；`validate_object_layout.py` fail-closed；一键 `start_fkie_agx_ycb_demo.sh` + `arm_observe_aisle_table`；`FORCE_RESTART=1` 先停 gz 再重烤 |
+| 感知 | `perceive_rgbd_objects.py` / offline `perceive_saved_rgbd_gsam.py`；失败分析 `analyze_gsam_failures.py` |
+| Grounded-SAM | NBV vendor + checkpoints；`.conda_envs/nbv_perception`；禁止 DovSG 运行时依赖 |
+| 对象记忆 | `perception/object_memory.py`（扩展字段 + confirm）；多视角 `run_multiview_ycb_capture.sh`（`AGX_ARM_POSE` bake） |
+| 评测 | `evaluate_object_discovery.py` + `run_object_discovery_benchmark.sh`；正式 **0.15 m**；召回分母=全场景 GT |
+| REMANI | `/ee_goal` PoseStamped `world`；FSM 需 odom+js、`target_type!=PRESET`；wbc@`remani-real-implementation`（gitignore） |
 
 **Mode A 约束**：static 冻结关节 → 须 URDF bake；连杆合并后用 model×TF 与 gripper tip 校验。相机朝向已与 optical TF 对齐后，物体须落在真实视锥（光轴探针/GT 反投影），禁止用错误 TF 硬塞物体。
 

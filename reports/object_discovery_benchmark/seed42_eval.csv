@@ -1,0 +1,2 @@
+tp,fp,fn,precision,unique_recall,mean_center_error_m,dist_thresh_m,n_gt_total
+5,25,6,0.16666666666666666,0.45454545454545453,0.045157415286428804,0.15,11

@@ -1,0 +1,9 @@
+# Auto-searched to look at clear-aisle table ROI (no shelf OBB).
+# target=[-3.9, -7.5, 1.05] ang=15.7deg dist=1.66m cam=[-3.132868835007346, -6.213191403388841, 1.7545821848470273] fwd=[-0.6798417373217683, -0.6117790606939318, -0.4044027609786488]
+cr10_joint1: 0.9
+cr10_joint2: -0.8192307692307692
+cr10_joint3: 0.4
+cr10_joint4: 0.0
+cr10_joint5: 1.7
+cr10_joint6: 0.0
+gripper_finger1_joint: 0.0

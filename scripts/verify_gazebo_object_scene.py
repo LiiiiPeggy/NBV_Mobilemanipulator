@@ -99,11 +99,31 @@ def main():
     n_targets_exist = sum(
         1 for r in rows if r["class_name"] not in ("table", "occluder") and r["exists"]
     )
+    # Support-surface checks from layout metadata (fail-closed when present).
+    support_issues = []
+    top_z = float(layout.get("table_top_z", 0.74))
+    for item, row in zip(expected_items, rows):
+        if not row.get("exists") or item.get("class_name") in ("table",):
+            continue
+        if "support" not in item or "contact" not in item or not row.get("actual"):
+            continue
+        zb = float(item["contact"]["z_bottom"])
+        support = item["support"]
+        expected_z = (top_z if support == "table" else 0.0) - zb + 0.001
+        az = float(row["actual"]["z"])
+        if abs(az - expected_z) > 0.05:
+            support_issues.append(
+                {"id": item["instance_id"], "actual_z": az, "expected_z": expected_z, "support": support}
+            )
+        if support == "floor" and az > 0.15:
+            support_issues.append({"id": item["instance_id"], "type": "floor_too_high", "z": az})
+
     ok = (
         n_targets_exist == n_targets
         and n_exist == len(expected_items)
         and n_below == 0
         and all(r.get("pose_ok") for r in rows if r["exists"])
+        and len(support_issues) == 0
     )
 
     report = {
@@ -116,6 +136,8 @@ def main():
         "n_targets_exist": n_targets_exist,
         "n_pose_ok": n_pose_ok,
         "n_below_ground": n_below,
+        "n_support_issues": len(support_issues),
+        "support_issues": support_issues,
         "spawned_n_ok": spawn_ok,
         "ok": ok,
         "world_model_names": sorted(world_names),

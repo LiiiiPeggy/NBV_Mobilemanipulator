@@ -1,0 +1,62 @@
+{
+  "seed": 42,
+  "per_view": [
+    {
+      "view_id": 0,
+      "tag": "front",
+      "n_det": 11,
+      "tp": 4,
+      "fp": 7,
+      "fn": 7,
+      "precision": 0.36363636363636365,
+      "unique_recall": 0.36363636363636365
+    },
+    {
+      "view_id": 1,
+      "tag": "high",
+      "n_det": 12,
+      "tp": 3,
+      "fp": 9,
+      "fn": 8,
+      "precision": 0.25,
+      "unique_recall": 0.2727272727272727
+    },
+    {
+      "view_id": 2,
+      "tag": "oblique",
+      "n_det": 7,
+      "tp": 5,
+      "fp": 2,
+      "fn": 6,
+      "precision": 0.7142857142857143,
+      "unique_recall": 0.45454545454545453
+    }
+  ],
+  "naive_accumulate": {
+    "tp": 5,
+    "fp": 25,
+    "fn": 6,
+    "precision": 0.16666666666666666,
+    "unique_recall": 0.45454545454545453,
+    "mean_center_error_m": 0.045157415286428804
+  },
+  "memory_all": {
+    "tp": 5,
+    "fp": 6,
+    "fn": 6,
+    "precision": 0.45454545454545453,
+    "unique_recall": 0.45454545454545453,
+    "mean_center_error_m": 0.0780969116764831
+  },
+  "memory_confirmed": {
+    "tp": 4,
+    "fp": 4,
+    "fn": 7,
+    "precision": 0.5,
+    "unique_recall": 0.36363636363636365,
+    "mean_center_error_m": 0.08356402730574618
+  },
+  "n_memory_objects": 11,
+  "n_confirmed": 8,
+  "n_duplicates_reduced": 19
+}

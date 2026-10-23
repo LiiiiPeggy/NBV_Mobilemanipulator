@@ -1,0 +1,499 @@
+{
+  "summary": {
+    "n_gt": 11,
+    "n_tp": 4,
+    "n_fn": 7,
+    "n_fp": 6,
+    "n_det_2d": 10,
+    "n_det_3d": 10,
+    "failure_counts": {
+      "TP": 4,
+      "B_gdino_miss": 4,
+      "F_localization_error": 3,
+      "H_false_positive": 6
+    },
+    "dist_thresh_m": 0.15,
+    "class_aliases_frozen": {
+      "banana": [
+        "banana"
+      ],
+      "apple": [
+        "apple"
+      ],
+      "bowl": [
+        "bowl"
+      ],
+      "bottle": [
+        "bottle",
+        "mustard bottle",
+        "spray bottle",
+        "windex"
+      ],
+      "box": [
+        "box",
+        "cardboard box",
+        "cereal box",
+        "cracker box",
+        "sugar box"
+      ],
+      "can": [
+        "can",
+        "soup can",
+        "tin can"
+      ],
+      "cone": [
+        "cone",
+        "traffic cone"
+      ]
+    }
+  },
+  "per_object": [
+    {
+      "gt_instance_id": "obj_00",
+      "gt_class": "banana",
+      "gt_xyz": [
+        -3.77729,
+        -7.41405,
+        0.779
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        217.06076157791148,
+        292.62201074283587
+      ],
+      "gdino_candidate": 1,
+      "gdino_class": "banana",
+      "gdino_conf": 0.8488835692405701,
+      "bbox_xyxy": [
+        191.59033203125,
+        279.5370788574219,
+        233.48992919921875,
+        304.1982727050781
+      ],
+      "sam_mask_ok": 1,
+      "depth_valid": 1,
+      "pred_xyz": [
+        -3.773406661967516,
+        -7.453346117551862,
+        0.7724615025989789
+      ],
+      "err_m": 0.04002520602304885,
+      "matched": 1,
+      "label": "TP",
+      "failure_type": null,
+      "depth_cam": 1.4729483947887476
+    },
+    {
+      "gt_instance_id": "obj_01",
+      "gt_class": "can",
+      "gt_xyz": [
+        -3.95802,
+        -7.54694,
+        0.796
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        231.67390832443826,
+        261.3699685098695
+      ],
+      "gdino_candidate": 1,
+      "gdino_class": "can",
+      "gdino_conf": 0.4554920196533203,
+      "bbox_xyxy": [
+        207.91461181640625,
+        246.71633911132812,
+        225.78195190429688,
+        271.0882263183594
+      ],
+      "sam_mask_ok": 1,
+      "depth_valid": 1,
+      "pred_xyz": [
+        -3.92342191742267,
+        -7.631381177053148,
+        0.8031681178238961
+      ],
+      "err_m": 0.09153535717571706,
+      "matched": 1,
+      "label": "TP",
+      "failure_type": null,
+      "depth_cam": 1.6594420885251089
+    },
+    {
+      "gt_instance_id": "obj_02",
+      "gt_class": "bottle",
+      "gt_xyz": [
+        -4.04352,
+        -7.37396,
+        0.851
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        266.54882129872266,
+        254.84909140951694
+      ],
+      "gdino_candidate": 1,
+      "gdino_class": "bottle",
+      "gdino_conf": 0.46660780906677246,
+      "bbox_xyxy": [
+        255.32078552246094,
+        240.63792419433594,
+        275.234130859375,
+        280.7778625488281
+      ],
+      "sam_mask_ok": 1,
+      "depth_valid": 1,
+      "pred_xyz": [
+        -4.020429405938047,
+        -7.364480942345262,
+        0.8406771463907127
+      ],
+      "err_m": 0.027010912142957037,
+      "matched": 1,
+      "label": "TP",
+      "failure_type": null,
+      "depth_cam": 1.5859983980497896
+    },
+    {
+      "gt_instance_id": "obj_03",
+      "gt_class": "bowl",
+      "gt_xyz": [
+        -3.72152,
+        -7.62665,
+        0.803
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        178.8942794448668,
+        277.7107213388889
+      ],
+      "gdino_candidate": 0,
+      "gdino_class": null,
+      "gdino_conf": null,
+      "bbox_xyxy": null,
+      "sam_mask_ok": null,
+      "depth_valid": null,
+      "pred_xyz": null,
+      "err_m": null,
+      "matched": 0,
+      "label": "FN",
+      "failure_type": "B_gdino_miss",
+      "depth_cam": 1.550373403916284
+    },
+    {
+      "gt_instance_id": "obj_04",
+      "gt_class": "box",
+      "gt_xyz": [
+        -4.07224,
+        -7.59021,
+        0.841
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        243.0234745100997,
+        241.48573296633504
+      ],
+      "gdino_candidate": 1,
+      "gdino_class": "box",
+      "gdino_conf": 0.26785537600517273,
+      "bbox_xyxy": [
+        51.11814880371094,
+        215.79835510253906,
+        348.6021728515625,
+        479.536865234375
+      ],
+      "sam_mask_ok": 1,
+      "depth_valid": null,
+      "pred_xyz": [
+        -3.7159754986207747,
+        -7.320689609418322,
+        0.2410030106529748
+      ],
+      "err_m": 0.7480387844943486,
+      "matched": 0,
+      "label": "FN",
+      "failure_type": "F_localization_error",
+      "depth_cam": 1.736647581445776
+    },
+    {
+      "gt_instance_id": "obj_05",
+      "gt_class": "box",
+      "gt_xyz": [
+        -3.88666,
+        -7.32854,
+        0.841
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        246.74521576287225,
+        275.6738568489427
+      ],
+      "gdino_candidate": 1,
+      "gdino_class": "box",
+      "gdino_conf": 0.26785537600517273,
+      "bbox_xyxy": [
+        51.11814880371094,
+        215.79835510253906,
+        348.6021728515625,
+        479.536865234375
+      ],
+      "sam_mask_ok": 1,
+      "depth_valid": null,
+      "pred_xyz": [
+        -3.7159754986207747,
+        -7.320689609418322,
+        0.2410030106529748
+      ],
+      "err_m": 0.6238519174201951,
+      "matched": 0,
+      "label": "FN",
+      "failure_type": "F_localization_error",
+      "depth_cam": 1.4629602686019334
+    },
+    {
+      "gt_instance_id": "obj_06",
+      "gt_class": "apple",
+      "gt_xyz": [
+        -3.69193,
+        -7.4836,
+        0.8180000000000001
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        188.79756334493274,
+        289.53829793848666
+      ],
+      "gdino_candidate": 1,
+      "gdino_class": "apple",
+      "gdino_conf": 0.6523271799087524,
+      "bbox_xyxy": [
+        177.9681396484375,
+        279.8924560546875,
+        198.03411865234375,
+        299.5189208984375
+      ],
+      "sam_mask_ok": 1,
+      "depth_valid": 1,
+      "pred_xyz": [
+        -3.684377078498675,
+        -7.479360365047944,
+        0.8301325526180148
+      ],
+      "err_m": 0.014907043998082637,
+      "matched": 1,
+      "label": "TP",
+      "failure_type": null,
+      "depth_cam": 1.4397986963094984
+    },
+    {
+      "gt_instance_id": "obj_07",
+      "gt_class": "box",
+      "gt_xyz": [
+        -4.12468,
+        -7.45706,
+        0.841
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        267.9186635217517,
+        244.54363907438358
+      ],
+      "gdino_candidate": 0,
+      "gdino_class": null,
+      "gdino_conf": null,
+      "bbox_xyxy": null,
+      "sam_mask_ok": null,
+      "depth_valid": null,
+      "pred_xyz": null,
+      "err_m": null,
+      "matched": 0,
+      "label": "FN",
+      "failure_type": "B_gdino_miss",
+      "depth_cam": 1.6921258726546657
+    },
+    {
+      "gt_instance_id": "obj_08",
+      "gt_class": "bottle",
+      "gt_xyz": [
+        -3.45122,
+        -7.91126,
+        0.111
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        141.40239448519748,
+        384.95586762706716
+      ],
+      "gdino_candidate": 0,
+      "gdino_class": null,
+      "gdino_conf": null,
+      "bbox_xyxy": null,
+      "sam_mask_ok": null,
+      "depth_valid": null,
+      "pred_xyz": null,
+      "err_m": null,
+      "matched": 0,
+      "label": "FN",
+      "failure_type": "B_gdino_miss",
+      "depth_cam": 1.8808137365260422
+    },
+    {
+      "gt_instance_id": "obj_09",
+      "gt_class": "bottle",
+      "gt_xyz": [
+        -4.41264,
+        -7.8062,
+        0.111
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        279.3634588452504,
+        301.71450651448237
+      ],
+      "gdino_candidate": 1,
+      "gdino_class": "bottle",
+      "gdino_conf": 0.46660780906677246,
+      "bbox_xyxy": [
+        255.32078552246094,
+        240.63792419433594,
+        275.234130859375,
+        280.7778625488281
+      ],
+      "sam_mask_ok": 1,
+      "depth_valid": null,
+      "pred_xyz": [
+        -4.0520614480197805,
+        -7.574612123948213,
+        0.8348759157609382
+      ],
+      "err_m": 0.8412170813179356,
+      "matched": 0,
+      "label": "FN",
+      "failure_type": "F_localization_error",
+      "depth_cam": 2.4391807911338224
+    },
+    {
+      "gt_instance_id": "obj_10",
+      "gt_class": "cone",
+      "gt_xyz": [
+        -3.18844,
+        -7.65415,
+        0.201
+      ],
+      "visible_in_fov": true,
+      "proj_uv": [
+        102.77847283639136,
+        441.79779394917733
+      ],
+      "gdino_candidate": 0,
+      "gdino_class": null,
+      "gdino_conf": null,
+      "bbox_xyxy": null,
+      "sam_mask_ok": null,
+      "depth_valid": null,
+      "pred_xyz": null,
+      "err_m": null,
+      "matched": 0,
+      "label": "FN",
+      "failure_type": "B_gdino_miss",
+      "depth_cam": 1.5161373888436531
+    }
+  ],
+  "false_positives": [
+    {
+      "pred_class": "apple",
+      "confidence": 0.5175321698188782,
+      "center_world": [
+        -3.7380226808780495,
+        -7.666727984239609,
+        0.7807865699771313
+      ],
+      "bbox_xyxy": [
+        158.2409210205078,
+        263.9609069824219,
+        196.04615783691406,
+        288.3236389160156
+      ],
+      "failure_type": "H_false_positive"
+    },
+    {
+      "pred_class": "bottle",
+      "confidence": 0.37163349986076355,
+      "center_world": [
+        -4.0520614480197805,
+        -7.574612123948213,
+        0.8348759157609382
+      ],
+      "bbox_xyxy": [
+        234.32095336914062,
+        225.65684509277344,
+        252.58505249023438,
+        263.6156005859375
+      ],
+      "failure_type": "H_false_positive"
+    },
+    {
+      "pred_class": "can",
+      "confidence": 0.35907965898513794,
+      "center_world": [
+        -3.8598798608177867,
+        -7.318882685907949,
+        0.7844351075326069
+      ],
+      "bbox_xyxy": [
+        237.21148681640625,
+        279.21234130859375,
+        255.48965454101562,
+        302.20465087890625
+      ],
+      "failure_type": "H_false_positive"
+    },
+    {
+      "pred_class": "box",
+      "confidence": 0.29413461685180664,
+      "center_world": [
+        -3.2866051424839924,
+        -7.380761510759647,
+        0.4787408808899545
+      ],
+      "bbox_xyxy": [
+        58.65245819091797,
+        370.10565185546875,
+        198.05047607421875,
+        479.73236083984375
+      ],
+      "failure_type": "H_false_positive"
+    },
+    {
+      "pred_class": "box",
+      "confidence": 0.27983957529067993,
+      "center_world": [
+        -4.609780888009589,
+        -6.375235429242878,
+        0.5430851871811797
+      ],
+      "bbox_xyxy": [
+        404.8175354003906,
+        92.62112426757812,
+        639.8080444335938,
+        479.5221862792969
+      ],
+      "failure_type": "H_false_positive"
+    },
+    {
+      "pred_class": "box",
+      "confidence": 0.26785537600517273,
+      "center_world": [
+        -3.7159754986207747,
+        -7.320689609418322,
+        0.2410030106529748
+      ],
+      "bbox_xyxy": [
+        51.11814880371094,
+        215.79835510253906,
+        348.6021728515625,
+        479.536865234375
+      ],
+      "failure_type": "H_false_positive"
+    }
+  ]
+}
