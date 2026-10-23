@@ -5,6 +5,7 @@ Backends:
   depth — depth clustering + HSV class heuristics (default; no GT poses)
   yolo  — ultralytics YOLOv8n if installed
   color — legacy HSV blobs only
+  grounded_sam — NBV-vendored Grounding DINO + SAM2 (no DovSG runtime)
 
 Does NOT read Gazebo object ground-truth positions.
 """
@@ -19,6 +20,11 @@ import rospy
 import tf2_ros
 from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge
+
+try:
+    import message_filters
+except Exception:
+    message_filters = None
 
 
 COCO_TO_SCENE = {
@@ -96,20 +102,46 @@ def classify_hsv(mean_hsv, size_m):
     return None, 0.0
 
 
+DEFAULT_GSAM_CLASSES = [
+    "banana",
+    "apple",
+    "bottle",
+    "bowl",
+    "box",
+    "can",
+    "cup",
+]
+
+
 class Perceiver(object):
-    def __init__(self, backend="depth", world_tf_mode="tf", calib_T=None):
+    def __init__(
+        self,
+        backend="depth",
+        world_tf_mode="tf",
+        calib_T=None,
+        gsam_classes=None,
+        sync_slop=0.05,
+    ):
         self.backend = backend
         self.world_tf_mode = world_tf_mode  # tf | gazebo_link6 | calib
         self.calib_T = None if calib_T is None else np.array(calib_T, dtype=np.float64)
+        self.gsam_classes = list(gsam_classes or DEFAULT_GSAM_CLASSES)
+        self.sync_slop = float(sync_slop)
         self.bridge = CvBridge()
         self.buf = tf2_ros.Buffer(cache_time=rospy.Duration(30))
         tf2_ros.TransformListener(self.buf)
         self.model = None
+        self.gsam = None
         if backend == "yolo":
             from ultralytics import YOLO
 
             self.model = YOLO("yolov8n.pt")
             rospy.loginfo("Loaded YOLOv8n")
+        elif backend == "grounded_sam":
+            from perception.rgbd_object_detector import GroundedSAMDetector
+
+            self.gsam = GroundedSAMDetector()
+            rospy.loginfo("Loaded NBV GroundedSAMDetector")
 
     def detect_yolo(self, bgr):
         res = self.model.predict(bgr, verbose=False, conf=0.25)[0]
@@ -256,7 +288,17 @@ class Perceiver(object):
         x2, y2 = min(w - 1, x2), min(h - 1, y2)
         if x2 <= x1 or y2 <= y1:
             return None
-        if "comp_mask" in det:
+        if det.get("mask") is not None:
+            m = np.asarray(det["mask"]).astype(bool)
+            if m.shape[:2] != depth.shape[:2]:
+                # resize not available without cv2; fall back to bbox
+                patch = depth[y1:y2, x1:x2]
+                near = np.isfinite(patch) & (patch > 0.25) & (patch < 4.5)
+            else:
+                patch = depth[y1:y2, x1:x2]
+                patch_mask = m[y1:y2, x1:x2]
+                near = patch_mask & np.isfinite(patch) & (patch > 0.25) & (patch < 4.5)
+        elif "comp_mask" in det:
             patch_mask = det["comp_mask"][y1:y2, x1:x2]
             patch = depth[y1:y2, x1:x2]
             near = patch_mask & np.isfinite(patch) & (patch > 0.25) & (patch < 4.5)
@@ -324,10 +366,58 @@ class Perceiver(object):
             "optical_frame": frame_id,
         }
 
-    def run_once(self, timeout=10.0):
+    def detect_grounded_sam(self, bgr):
+        import cv2
+
+        rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
+        res = self.gsam.run(rgb, self.gsam_classes)
+        dets = []
+        for i, cid in enumerate(res.class_id):
+            cls = self.gsam_classes[int(cid)] if 0 <= int(cid) < len(self.gsam_classes) else "object"
+            mask = None if res.masks is None else res.masks[i]
+            dets.append(
+                {
+                    "class_name": cls,
+                    "conf": float(res.confidence[i]),
+                    "xyxy": [float(v) for v in res.xyxy[i]],
+                    "mask": mask,
+                }
+            )
+        return dets
+
+    def _grab_rgbd(self, timeout=10.0):
+        """Prefer ApproximateTimeSynchronizer; fall back to sequential waits."""
+        sync_dt = None
+        if message_filters is not None:
+            rgb_sub = message_filters.Subscriber("/realsense/rgb/image_raw", Image)
+            depth_sub = message_filters.Subscriber("/realsense/depth/image_raw", Image)
+            sync = message_filters.ApproximateTimeSynchronizer(
+                [rgb_sub, depth_sub], queue_size=10, slop=self.sync_slop
+            )
+            got = {"pair": None}
+
+            def _cb(rgb_msg, depth_msg):
+                got["pair"] = (rgb_msg, depth_msg)
+
+            sync.registerCallback(_cb)
+            t_end = time.time() + timeout
+            while time.time() < t_end and got["pair"] is None and not rospy.is_shutdown():
+                rospy.sleep(0.01)
+            rgb_sub.unregister()
+            depth_sub.unregister()
+            if got["pair"] is not None:
+                rgb, depth = got["pair"]
+                sync_dt = abs(rgb.header.stamp.to_sec() - depth.header.stamp.to_sec())
+                info = rospy.wait_for_message("/realsense/depth/camera_info", CameraInfo, timeout=timeout)
+                return rgb, depth, info, sync_dt
         rgb = rospy.wait_for_message("/realsense/rgb/image_raw", Image, timeout=timeout)
         depth = rospy.wait_for_message("/realsense/depth/image_raw", Image, timeout=timeout)
         info = rospy.wait_for_message("/realsense/depth/camera_info", CameraInfo, timeout=timeout)
+        sync_dt = abs(rgb.header.stamp.to_sec() - depth.header.stamp.to_sec())
+        return rgb, depth, info, sync_dt
+
+    def run_once(self, timeout=10.0):
+        rgb, depth, info, sync_dt = self._grab_rgbd(timeout=timeout)
         bgr = self.bridge.imgmsg_to_cv2(rgb, desired_encoding="bgr8")
         depth_img = depth_to_meters(self.bridge.imgmsg_to_cv2(depth, desired_encoding="passthrough"))
         K = np.array(info.K, dtype=np.float64).reshape(3, 3)
@@ -337,6 +427,8 @@ class Perceiver(object):
             dets = self.detect_yolo(bgr)
         elif self.backend == "color":
             dets = self.detect_color(bgr)
+        elif self.backend == "grounded_sam":
+            dets = self.detect_grounded_sam(bgr)
         else:
             dets = self.detect_depth_clusters(bgr, depth_img, K)
         objs = []
@@ -348,6 +440,7 @@ class Perceiver(object):
         return {
             "backend": self.backend,
             "stamp": {"secs": rgb.header.stamp.secs, "nsecs": rgb.header.stamp.nsecs},
+            "sync_dt_s": sync_dt,
             "inference_s": dt,
             "n_detections": len(dets),
             "n_localized": len(objs),
@@ -357,7 +450,7 @@ class Perceiver(object):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backend", choices=["depth", "yolo", "color"], default="depth")
+    ap.add_argument("--backend", choices=["depth", "yolo", "color", "grounded_sam"], default="depth")
     ap.add_argument(
         "--world-tf-mode",
         choices=["tf", "gazebo_link6", "calib"],
@@ -371,6 +464,8 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--views", type=int, default=1)
     ap.add_argument("--sleep", type=float, default=1.0)
+    ap.add_argument("--gsam-classes", default=",".join(DEFAULT_GSAM_CLASSES))
+    ap.add_argument("--sync-slop", type=float, default=0.05)
     args = ap.parse_args()
     rospy.init_node("perceive_rgbd_objects")
     backend = args.backend
@@ -388,7 +483,14 @@ def main():
         else:
             rospy.logwarn("calib json missing (%s); falling back to gazebo_link6", p)
             args.world_tf_mode = "gazebo_link6"
-    perc = Perceiver(backend=backend, world_tf_mode=args.world_tf_mode, calib_T=calib_T)
+    gsam_classes = [c.strip() for c in args.gsam_classes.split(",") if c.strip()]
+    perc = Perceiver(
+        backend=backend,
+        world_tf_mode=args.world_tf_mode,
+        calib_T=calib_T,
+        gsam_classes=gsam_classes,
+        sync_slop=args.sync_slop,
+    )
     rospy.sleep(1.0)
     views = []
     for i in range(args.views):

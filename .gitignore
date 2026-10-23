@@ -76,3 +76,27 @@ third_party/gazebo_objects/
 
 # WBC / REMANI clone (own .git; interface inspected locally)
 third_party/wbc/
+
+# NBV-owned perception env (cloned locally; not in git)
+.conda_envs/
+.venv_perception/
+
+# Perception checkpoints (weights ignored; keep CHECKSUMS + configs)
+checkpoints/**/*.pth
+checkpoints/**/*.pt
+checkpoints/**/*.safetensors
+checkpoints/**/*.bin
+checkpoints/hub/
+!checkpoints/CHECKSUMS.sha256
+!checkpoints/**/*.py
+!checkpoints/**/*.yaml
+!checkpoints/**/*.json
+!checkpoints/**/*.txt
+
+# Vendor build / editable leftovers
+perception/vendor/**/build/
+perception/vendor/**/*.egg-info/
+perception/vendor/**/__pycache__/
+perception/vendor/**/sav_dataset/
+perception/vendor/**/.asset/
+perception/vendor/**/demo/

@@ -98,7 +98,8 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 - 启动：`scripts/fkie_agx_warehouse_nbv.sh`；停仿：`scripts/fkie_stop_sim.sh`。
 - RViz：单窗口 `agx_nbv.rviz`（`DepthCloud_optical_frame` vs `Octomap_world_fused` 分开展示）。
 - Octomap：`configs/fkie/agx_adapt/launch/octomap_agx.launch`（max_range=5，filter_ground=false）。
-- 仓库 NBV：历史 `goals=1` 在错误相机朝向下取得；**相机修复后** baseline/aisle_safe 均为 Action OK 且 `goals=0`/`complete_exploration=True`（待在正确几何下重测非空）。
+- 仓库 NBV：**正确光学** + aisle_safe 臂姿/ROI 后已恢复非空：`goals=1`，GOAL≈(-3.020,-5.294,1.609)；证据 `reports/fkie_corrected_optical_nbv.md`。禁止回退 90° 传感器 pose。
+- aisle_safe 专用：`arm_view_pose_aisle_safe.yaml`；planner `nbv_planner_agx_warehouse_aisle_safe.yaml`（东界 x=-1.80）；`camera_pose` 发布 `d455_depth_optical_frame`。
 
 ## 6. 主动视角 / 运动后端（设计原则，实现多为待验证）
 
@@ -114,13 +115,18 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | 项 | 内容 |
 |----|------|
 | 对象资产 | `scripts/fetch_object_models.sh` → `third_party/gazebo_objects/gazebo_ycb`（gitignore）；本地 `configs/fkie/agx_adapt/models/{simple_table,traffic_cone,cardboard_occluder}` |
-| 布局/真值 | 分目录：`primitive_debug/`（彩色球）与 `ycb/`（`generate_object_scene.py`）；`export_object_gt.py` 真值仅评测用 |
-| 感知 | `perceive_rgbd_objects.py`（depth/color/yolo）；默认 `--world-tf-mode tf` |
-| 评测 | `evaluate_object_discovery.py`；min_loop 正式默认 **0.15 m**，并报告 0.10/0.35 诊断；勿事后放宽 |
-| REMANI 接口 | `/ee_goal`=`geometry_msgs/PoseStamped`（world）；`nbv_to_remani_ee_goal.py` |
+| 布局/真值 | 分目录：`primitive_debug/`（彩色球）与 `ycb/`（`generate_object_scene.py` 桌+架+地）；`export_object_gt.py` 真值仅评测用 |
+| 感知 | `perceive_rgbd_objects.py` backend：`depth`/`color`/`yolo`/`grounded_sam`；默认 `--world-tf-mode tf`；ApproximateTimeSynchronizer |
+| Grounded-SAM | **NBV 自有**：`perception/vendor/{GroundingDINO,segment-anything-2}` + `checkpoints/`；env `.conda_envs/nbv_perception`；**禁止**运行时依赖 DovSG 路径/env/挂载；独立性 `scripts/verify_perception_independence.sh` |
+| 权重清单 | `checkpoints/CHECKSUMS.sha256`；大权重 gitignore；复制来源见 `perception/NOTICE` |
+| 对象记忆 | `perception/object_memory.py` + `scripts/build_object_memory.py`（assoc 0.25 m） |
+| 评测 | `evaluate_object_discovery.py`；正式 **0.15 m** + 诊断 0.10/0.35；勿读 Gazebo 实例 ID 作检测输入 |
+| REMANI 接口 | `/ee_goal`=`geometry_msgs/PoseStamped`（world）；`nbv_to_remani_ee_goal.py`（已能 publish；执行节点待接） |
 | WBC 克隆 | `third_party/wbc`（gitignore），分支 `remani-real-implementation` |
 
 **Mode A 约束**：static 冻结关节 → 须 URDF bake；连杆合并后用 model×TF 与 gripper tip 校验。相机朝向已与 optical TF 对齐后，物体须落在真实视锥（光轴探针/GT 反投影），禁止用错误 TF 硬塞物体。
+
+**感知独立性硬约束**：允许从 DovSG **复制**；禁止运行时 import DovSG、`PYTHONPATH` 含 DovSG、软链/挂载 DovSG、改 DovSG、复用 `conda dovsg`。移动/删除 DovSG 不应影响 NBV 感知（权重与 vendor 留在本仓）。
 
 ## 8. 禁止轻易改动的已验证点
 

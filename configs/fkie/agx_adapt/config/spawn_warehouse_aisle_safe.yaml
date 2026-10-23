@@ -2,7 +2,8 @@
 # Facing shelf origin (-4.9,-5.0); base outside shelf/box footprints.
 scene_id: warehouse_aisle_safe
 world: configs/fkie/adapt_test/warehouse_icra_large_viz.world
-arm_pose: configs/fkie/agx_adapt/config/arm_view_pose.yaml
+arm_pose: configs/fkie/agx_adapt/config/arm_view_pose_aisle_safe.yaml
+planner_config: configs/fkie/agx_adapt/config/nbv_planner_agx_warehouse_aisle_safe.yaml
 spawn:
   x: -2.10
   y: -5.89

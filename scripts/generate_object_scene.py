@@ -30,12 +30,14 @@ LOCAL = {
 }
 
 
-def build_layout(seed, n_objects=10, fov_slots_path=None):
+def build_layout(seed, n_objects=12, fov_slots_path=None):
     rng = random.Random(seed)
-    # YCB/local objects on a table near aisle_safe spawn (~(-2.10,-5.89), yaw≈2.83 facing shelf).
+    # YCB/local: shelf bay + table + floor near aisle_safe spawn (~(-2.10,-5.89), yaw≈2.83).
     # Separate from primitive_debug layouts (do not overwrite those).
     table_pose = {"x": -2.55, "y": -6.55, "z": 0.0, "yaw": 0.2}
     table_top_z = 0.72
+    # Approximate mid-shelf height facing robot (warehouse shelf east of aisle).
+    shelf_z = 0.95
 
     pool = list(YCB.items()) + list(LOCAL.items())
     rng.shuffle(pool)
@@ -43,17 +45,20 @@ def build_layout(seed, n_objects=10, fov_slots_path=None):
 
     objects = []
     slots = [
+        # table (easy / medium)
         ("easy", -2.40, -6.40, table_top_z, 0.0),
         ("easy", -2.55, -6.60, table_top_z, 0.25),
         ("easy", -2.70, -6.45, table_top_z, -0.2),
         ("medium", -2.35, -6.25, table_top_z, 0.4),
         ("medium", -2.80, -6.30, table_top_z, -0.3),
-        ("medium", -2.50, -6.75, table_top_z, 0.8),
+        # shelf-adjacent (facing aisle_safe camera)
+        ("medium", -3.35, -5.55, shelf_z, 0.1),
+        ("hard", -3.45, -5.85, shelf_z, -0.2),
+        ("hard", -3.25, -6.10, shelf_z + 0.25, 0.3),
+        # floor
         ("hard", -2.20, -6.90, 0.0, 0.1),
         ("hard", -2.95, -6.95, 0.0, -0.6),
-        ("hard", -2.15, -6.20, 0.0, 0.5),
-        ("hard", -3.05, -6.15, 0.0, 0.0),
-        ("medium", -2.60, -6.50, table_top_z, 0.35),
+        ("medium", -2.15, -6.20, 0.0, 0.5),
         ("easy", -2.65, -6.65, table_top_z, -0.1),
     ]
     if fov_slots_path:
@@ -106,7 +111,7 @@ def build_layout(seed, n_objects=10, fov_slots_path=None):
         "scene_kind": "ycb",
         "seed": seed,
         "frame_id": "world",
-        "notes": "YCB/local models on table near aisle_safe spawn; GT from Gazebo after spawn. Not primitive_debug.",
+        "notes": "YCB/local models on table + shelf bay + floor near aisle_safe; GT from Gazebo after spawn. Not primitive_debug.",
         "furniture": [
             {
                 "instance_id": "table_01",
@@ -125,7 +130,7 @@ def build_layout(seed, n_objects=10, fov_slots_path=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--n-objects", type=int, default=10)
+    ap.add_argument("--n-objects", type=int, default=12)
     ap.add_argument(
         "--out",
         default="data/scenes/indoor_objects/ycb/layouts/seed42.json",

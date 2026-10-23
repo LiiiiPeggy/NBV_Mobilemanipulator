@@ -212,3 +212,26 @@ Gazebo depth 沿传感器 **+X**；旧 `<pose>… -π/2 0 -π/2` 把传感器系
 
 `z=0.36` 时 `*_wheel_link` 中心≈0.10 m，而 `fr_wheel_link.STL` 半径≈0.153 m → 胎底约 −0.05 m。  
 **修复**：spawn YAML 改为 `z=0.42`；实测胎底≈+0.007 m。历史选 0.36 是为避免 z=0.05 穿地弹起，仍低估了轮半径。
+
+---
+
+## 2026-10-23 P1-R / 独立 Grounded-SAM / REMANI 桥
+
+### P1-R：正确光学下恢复非空 NBV
+
+修光轴后曾 `goals=0`。  
+**措施**：aisle_safe 专用臂姿、planner 东界放宽、`camera_pose` 用 `d455_depth_optical_frame`、诊断脚本。  
+**结果**：`goals=1`，GOAL≈(-3.020,-5.294,1.609)。证据 `reports/fkie_corrected_optical_nbv.md`。
+
+### 决策：从 DovSG 复制而非运行时依赖
+
+推翻「host 挂 `conda dovsg`」方案。允许复制 GDINO/SAM2/权重到 `perception/vendor` + `checkpoints/`；禁止 PYTHONPATH/挂载/改 DovSG。env：`.conda_envs/nbv_perception`（不复用 dovsg）。独立性脚本校验 checksum + import 路径。
+
+### GroundingDINO `_C` 未编译
+
+CUDA 扩展缺失时原代码仍走 `MultiScaleDeformableAttnFunction` 导致 `NameError`。  
+**修复**：`ms_deform_attn.py` 在 `_C is None` 时走 PyTorch fallback。GPU smoke：LOAD≈3s，INFER≈0.76s，~2.7GB。
+
+### P4：`/ee_goal` 已发布、REMANI 未接
+
+live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info /ee_goal` 无 REMANI 订阅者。Mode A 保留；Mode B dynamic 全量 bringup 留待执行节点就绪。

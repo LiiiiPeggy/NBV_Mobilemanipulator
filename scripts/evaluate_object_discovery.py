@@ -72,6 +72,14 @@ def main():
     ap.add_argument("--gt", required=True)
     ap.add_argument("--pred", required=True)
     ap.add_argument("--dist-thresh", type=float, default=0.15)
+    ap.add_argument(
+        "--diagnostic-thresh",
+        type=float,
+        nargs="*",
+        default=[0.10, 0.35],
+        help="Extra thresholds reported under metrics['diagnostics'] (not primary).",
+    )
+    ap.add_argument("--memory-json", default="", help="Optional ObjectMemory JSON for unique-ID metrics")
     ap.add_argument("--out-json", required=True)
     ap.add_argument("--out-csv", default="")
     args = ap.parse_args()
@@ -84,6 +92,22 @@ def main():
     metrics["n_gt"] = len(gts)
     metrics["n_pred"] = len(preds)
     metrics["scene_id"] = gt.get("scene_id")
+    metrics["diagnostics"] = {
+        str(t): match(preds, gts, float(t)) for t in (args.diagnostic_thresh or [])
+    }
+    if args.memory_json:
+        mem = json.loads(Path(args.memory_json).read_text())
+        mem_preds = [
+            {
+                "class_name": o["class_name"],
+                "center": np.array(o["center_world"], dtype=np.float64),
+                "confidence": o.get("confidence", 0.0),
+                "view_id": 0,
+            }
+            for o in mem.get("objects", [])
+        ]
+        metrics["memory"] = match(mem_preds, gts, args.dist_thresh)
+        metrics["memory"]["n_memory_objects"] = len(mem_preds)
     Path(args.out_json).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out_json).write_text(json.dumps(metrics, indent=2))
     print(json.dumps({k: metrics[k] for k in ("tp", "fp", "fn", "precision", "unique_recall", "mean_center_error_m")}, indent=2))

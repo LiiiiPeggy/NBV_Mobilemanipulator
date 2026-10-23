@@ -1,0 +1,9 @@
+# Observation pose for aisle_safe spawn (-2.10,-5.89,yaw=2.833) facing Shelves high.
+# Slightly more shoulder pitch toward shelf volume / upper unknown band than baseline arm_view_pose.
+cr10_joint1: 0.15
+cr10_joint2: -0.95
+cr10_joint3: 1.35
+cr10_joint4: 0.0
+cr10_joint5: 0.65
+cr10_joint6: 0.0
+gripper_finger1_joint: 0.0

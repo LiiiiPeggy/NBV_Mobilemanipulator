@@ -1,0 +1,5 @@
+Vendored perception sources for NBV_Mobilemanipulator.
+Source project: /home/ubuntu/locomani/DovSG
+Source git rev: 3aa627922eb74acce2da38c171d651cce12ed21a
+Copied (not linked): GroundingDINO, segment-anything-2, checkpoints.
+Runtime MUST NOT import or mount DovSG. See checkpoints/CHECKSUMS.sha256.

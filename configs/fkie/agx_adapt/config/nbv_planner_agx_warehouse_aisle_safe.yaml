@@ -1,0 +1,57 @@
+# FKIE params for aisle_safe spawn (correct optical). ROI extended slightly east for RRT room.
+num_frontiers: 10
+frontiers_N_max_tries: 100
+max_num_cached_points_to_keep: 50
+min_gain_frontier: -10000.0
+free_space_frontier: true
+
+planner_boundary_id: 0
+arm_height_min: 0.35
+arm_height_max: 1.65
+self_collision_height: 2.2
+arm_goal_range: 1.4
+raycast_dr: 0.1
+raycast_dphi: 10
+raycast_dtheta: 10
+gain_r_min: 0.3
+gain_r_max: 5.0
+camera_hfov: 86.0
+camera_vfov: 57.0
+visited_cells_grid_size: 1.0
+compute_yaw_from_free_space: true
+compute_yaw_from_measurement: false
+min_distance_to_obstacle: 0.35
+
+path_optimizer_sampling_target_count: 1
+shift_points_max_length: 2.0
+shift_points_threshold: 0.9
+optimize_path_using_convex_hull: false
+optimize_path_using_sampling: false
+optimize_path_remove_points_inside_bbx: true
+optimize_path_shift_points_towards_obstacles: false
+
+rrt_tree_length: 800
+rrt_N_max_tries: 120
+rrt_sampling_radius: 30.0
+rrt_collision_cyl_radius: 0.30
+rrt_sample_threshold_distance: 0.4
+rrt_step_size: 0.5
+sample_in_unknown: false
+do_rrt_star: false
+
+utility_lambda: 5.0
+utility_min_gain: 0.0
+utility_weight_measurement: 0.0
+utility_weight_free_space: 5.0
+# Lower visited penalty vs baseline 500 so single-view cell marking is less absolute.
+utility_weight_visited_cell: 120.0
+utility_weight_euclidean_cost: 0.0
+utility_max_value_free_space: 1.70
+utility_max_value_measurement: 500
+utility_max_value_visited_cell: 1.0
+
+# East edge extended from -2.36 → -1.80 so aisle_safe base (-2.10) + camera stay comfortably inside.
+planner_boundary_x: [-8.3603, -1.80, -1.80, -8.3603]
+planner_boundary_y: [-2.6852, -2.6852, -8.6852, -8.6852]
+robot_sampling_frame: turret_link
+world_frame: world

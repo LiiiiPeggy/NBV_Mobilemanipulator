@@ -3,7 +3,7 @@
   "scene_kind": "ycb",
   "seed": 42,
   "frame_id": "world",
-  "notes": "YCB/local models on table near aisle_safe spawn; GT from Gazebo after spawn. Not primitive_debug.",
+  "notes": "YCB/local models on table + shelf bay + floor near aisle_safe; GT from Gazebo after spawn. Not primitive_debug.",
   "furniture": [
     {
       "instance_id": "table_01",
@@ -90,10 +90,10 @@
       "class_name": "box",
       "difficulty": "medium",
       "spawn": {
-        "x": -2.5133277194997015,
-        "y": -6.767081174273545,
-        "z": 0.721,
-        "yaw": 0.8263494129006524
+        "x": -3.3633277194997016,
+        "y": -5.567081174273545,
+        "z": 0.951,
+        "yaw": 0.12634941290065238
       },
       "source": "ycb"
     },
@@ -103,10 +103,10 @@
       "class_name": "apple",
       "difficulty": "hard",
       "spawn": {
-        "x": -2.2238673834088094,
-        "y": -6.90720436196176,
-        "z": 0.001,
-        "yaw": 0.08589793804846285
+        "x": -3.4738673834088094,
+        "y": -5.8572043619617595,
+        "z": 0.951,
+        "yaw": -0.21410206195153716
       },
       "source": "ycb"
     },
@@ -116,10 +116,10 @@
       "class_name": "box",
       "difficulty": "hard",
       "spawn": {
-        "x": -2.959362656651262,
-        "y": -6.964128747966679,
-        "z": 0.001,
-        "yaw": -0.6456549557076903
+        "x": -3.2593626566512617,
+        "y": -6.114128747966679,
+        "z": 1.2009999999999998,
+        "yaw": 0.2543450442923097
       },
       "source": "ycb"
     },
@@ -129,10 +129,10 @@
       "class_name": "bottle",
       "difficulty": "hard",
       "spawn": {
-        "x": -2.1524345072196893,
-        "y": -6.222510430228808,
+        "x": -2.2024345072196896,
+        "y": -6.922510430228808,
         "z": 0.001,
-        "yaw": 0.542229537202816
+        "yaw": 0.142229537202816
       },
       "source": "ycb"
     },
@@ -142,12 +142,25 @@
       "class_name": "bottle",
       "difficulty": "hard",
       "spawn": {
-        "x": -3.075271988115292,
-        "y": -6.162409303115575,
+        "x": -2.9752719881152925,
+        "y": -6.9624093031155745,
         "z": 0.001,
-        "yaw": 0.01286397994944434
+        "yaw": -0.5871360200505557
       },
       "source": "ycb"
+    },
+    {
+      "instance_id": "obj_10",
+      "model": "traffic_cone",
+      "class_name": "cone",
+      "difficulty": "medium",
+      "spawn": {
+        "x": -2.1268728951237916,
+        "y": -6.208301898429982,
+        "z": 0.0,
+        "yaw": 0.46922885902566597
+      },
+      "source": "local"
     }
   ],
   "occluders": [

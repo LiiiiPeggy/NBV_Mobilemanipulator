@@ -5,9 +5,9 @@
 
 ## 研究目标与阶段
 
-**目标**：AGX（Ranger+CR10）+ FKIE/SSMI 仿真主动探索；后续 REMANI 运动后端与多对象评测。
+**目标**：AGX（Ranger+CR10）+ FKIE/SSMI 仿真主动探索；独立 Grounded-SAM 感知；后续 REMANI 运动后端与多对象评测。
 
-**当前阶段**：几何/TF/点云基础链路已按证据修复。P4-B / Grounded-SAM / REMANI 执行仍未做。
+**当前阶段**：正确光学几何下 aisle_safe FKIE 非空 goals 已恢复；GDINO+SAM2 已 vendored 并在 NBV 自有环境独立推理；`/ee_goal` 桥接已发布，REMANI 执行仍待接。
 
 ## 已完成（有验证证据）
 
@@ -15,35 +15,33 @@
 |----|----------|------|
 | FKIE / SSMI Docker 与有效基线 | 已验证（最小 world） | 最小 world 回归 `goals=2`（历史） |
 | **AGX Mode A 直立 + 关节烘焙** | **已验证** | bake fixed joints；gripper TF↔Gazebo ~1e-6 m |
-| **货架外安全 spawn（aisle_safe）** | **已验证** | OBB clear；俯视图 `reports/agx_geometry_shots/spawn_clearance_topdown.png` |
-| **轮胎贴地 spawn Z** | **已验证** | `z=0.42`；胎底≈+0.007 m（旧 0.36 穿地约 5 cm）；见 `reports/agx_scene_geometry_debug.md` |
-| **D455 Gazebo 朝向 = optical TF** | **已验证** | 探针绿球中心≈(320,240)，深度≈1.25 m；见 `reports/d455_pointcloud_tf_debug.md` |
-| **GT 深度+TF 定位** | **已验证** | median_err≈0.069 m，9/10≤0.10 m |
-| **场景 primitive / YCB 分离** | **已落地** | `primitive_debug/` 与 `ycb/` 目录；min_loop `SCENE_KIND` |
-| **P4-A NBV→EE** | dry-run | 历史证据保留 |
-| P4-B / Grounded-SAM | 未做 | — |
+| **货架外安全 spawn（aisle_safe）** | **已验证** | OBB clear；`spawn_clearance_topdown.png` |
+| **轮胎贴地 spawn Z** | **已验证** | `z=0.42`；见 `reports/agx_scene_geometry_debug.md` |
+| **D455 Gazebo 朝向 = optical TF** | **已验证** | `reports/d455_pointcloud_tf_debug.md` |
+| **P1-R 正确光学下 aisle_safe NBV** | **已验证** | `goals=1`，GOAL≈(-3.020,-5.294,1.609)；`reports/fkie_corrected_optical_nbv.md` |
+| **YCB 布局与 primitive 分离** | **已落地** | `ycb/layouts/seed42.json`（桌+架+地）；consistency OK |
+| **P3 Grounded-SAM 独立 vendoring** | **已验证** | `perception/vendor/*` + `checkpoints/`；`PERCEPTION_INDEPENDENCE_OK`；GPU smoke LOAD≈3s / INFER≈0.76s / ~2.7GB |
+| **P4 `/ee_goal` 桥接发布** | **半验证** | 已 publish；无 REMANI 订阅者；`reports/mode_b_remani_ee_goal.md` |
 
-## FKIE 仓库 NBV（重要边界）
+## FKIE 仓库 NBV（边界）
 
 | 配置 | 结果 | 说明 |
 |------|------|------|
-| 历史 a728102 + 旧传感器 pose | `goals=1` | **几何无效**（相机相对 TF 偏 90°） |
-| 相机 pose 修复后 `baseline` | Action OK，`goals=0`，`complete_exploration=True` | 见 `logs/.../console_baseline.log` |
-| 相机 pose 修复后 `aisle_safe` | 同上 `goals=0` | 见 `console.log`；修前曾 goals=1 亦不可信 |
+| 错误 90° 传感器 pose（历史） | `goals=1` | **几何无效**，禁止回退 |
+| 修光轴后未调 ROI（旧） | `goals=0` | 已由 aisle_safe 臂姿+ROI 东界重测取代 |
+| **修光轴 + aisle_safe 臂/ROI** | **`goals=1`** | `camera_pose`=`d455_depth_optical_frame` |
 
-**不**为非空 goals 放宽碰撞/伪造位姿。下一步需在**正确相机几何**下重调/重测 planner ROI 与观测。
-
-## 部分完成 / 边界
+## 部分完成 / 阻塞
 
 | 项 | 说明 |
 |----|------|
-| Mode A | 静态；臂连杆合并；仅固定构型感知；默认 `--world-tf-mode tf`（calib 弃用） |
-| 颜色检测评测 | TP=4 / recall=0.4 @0.15 m；≠真实识别；正式阈值未冻结 |
-| RGB-D 同步 | dt≈0.1 s WARN；建议 message_filters |
+| 正式 YCB+GSAM 发现率评测 | 布局/工具就绪；待 spawn YCB + 多视角 `grounded_sam` 抓数 |
+| Mode B 物理 bringup | 脚本就绪；本轮未切 dynamic（保留 Mode A FKIE） |
+| REMANI 执行闭环 | wbc 在仓；`/ee_goal` 无执行节点订阅 |
+| GDINO CUDA `_C` 扩展 | 未编译；GPU 上走 PyTorch MSDA fallback（可用） |
 
 ## 下一步
 
-1. 在正确 D455 朝向下重做仓库 FKIE 非空 NBV（baseline + aisle_safe）。  
-2. YCB 桌面场景 spawn + TF 定位评测（勿与 primitive_debug 混用）。  
-3. 独立感知容器 Grounded-SAM / YOLO。  
-4. Mode B + REMANI 单目标（非 dry-run）。  
+1. aisle_safe 下 spawn YCB → `grounded_sam` 多视角 → eval@0.15 (+0.10/0.35)。  
+2. 启动 REMANI 接收 `/ee_goal`，Mode B 单目标执行。  
+3. （可选）编译 GroundingDINO CUDA ops 以加速。  

@@ -1,0 +1,35 @@
+# NBV-owned Grounded-SAM perception (no DovSG runtime path)
+root: ${NBV_PERCEPTION_ROOT:-.}
+python: .conda_envs/nbv_perception/bin/python
+checkpoints:
+  grounding_dino_config: checkpoints/grounding_dino/GroundingDINO_SwinT_OGC.py
+  grounding_dino_weights: checkpoints/grounding_dino/groundingdino_swint_ogc.pth
+  sam2_weights: checkpoints/sam2/sam2_hiera_large.pt
+  sam2_cfg: sam2_hiera_l.yaml
+  bert_dir: checkpoints/bert-base-uncased
+topics:
+  rgb: /realsense/rgb/image_raw
+  depth: /realsense/depth/image_raw
+  camera_info: /realsense/depth/camera_info
+  optical_frame: d455_depth_optical_frame
+detection:
+  box_threshold: 0.25
+  text_threshold: 0.25
+  nms_threshold: 0.5
+  default_classes:
+    - banana
+    - apple
+    - bottle
+    - bowl
+    - box
+    - can
+    - cup
+localization:
+  min_pixels: 30
+  min_depth_m: 0.05
+  max_depth_m: 8.0
+memory:
+  assoc_thresh_m: 0.25
+eval:
+  dist_thresh_m: 0.15
+  diagnostic_thresh_m: [0.10, 0.35]

@@ -30,10 +30,11 @@ mkdir -p "${LOGDIR}" "${EVDIR}" "${SHOTDIR}"
 
 URDF_SRC=/workspace/third_party/agx/rangerboxcr10lidar_description/urdf/rangercr10lidar.urdf
 URDF_GZ=/workspace/configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo.urdf
-PLANNER_YAML=/workspace/configs/fkie/agx_adapt/config/nbv_planner_agx_warehouse.yaml
+PLANNER_YAML_DEFAULT=/workspace/configs/fkie/agx_adapt/config/nbv_planner_agx_warehouse.yaml
 RVIZ_CFG=/workspace/configs/fkie/agx_adapt/rviz/agx_nbv.rviz
+NBV_OCTOMAP_SETTLE_S="${NBV_OCTOMAP_SETTLE_S:-35}"
 
-# Load spawn + arm pose from single YAML profile (env AGX_SPAWN_* overrides)
+# Load spawn + arm pose + optional planner from single YAML profile
 eval "$(python3 - <<PY
 import yaml
 from pathlib import Path
@@ -41,8 +42,10 @@ cfg = yaml.safe_load(Path("${SPAWN_CFG}").read_text())
 sp = cfg["spawn"]
 world = cfg.get("world", "configs/fkie/adapt_test/warehouse_icra_large_viz.world")
 pose = cfg.get("arm_pose", "configs/fkie/agx_adapt/config/arm_view_pose.yaml")
+planner = cfg.get("planner_config", "configs/fkie/agx_adapt/config/nbv_planner_agx_warehouse.yaml")
 print("WORLD=/workspace/%s" % world)
 print("POSE_YAML=/workspace/%s" % pose)
+print("PLANNER_YAML=/workspace/%s" % planner)
 print("SCENE_ID=%s" % cfg.get("scene_id", "unknown"))
 print("RX=%s" % float(sp["x"]))
 print("RY=%s" % float(sp["y"]))
@@ -50,6 +53,7 @@ print("RZ=%s" % float(sp["z"]))
 print("RYAW=%s" % float(sp["yaw"]))
 PY
 )"
+PLANNER_YAML="${PLANNER_YAML:-$PLANNER_YAML_DEFAULT}"
 # Optional env overrides (same names across scripts)
 RX="${AGX_SPAWN_X:-$RX}"
 RY="${AGX_SPAWN_Y:-$RY}"
@@ -218,8 +222,9 @@ roslaunch /workspace/configs/fkie/agx_adapt/launch/octomap_agx.launch robot_ns:=
   >"${LOGDIR}/octomap.log" 2>&1 &
 register $!
 
+# Match PointCloud2 frame (depth optical), not color optical baseline offset.
 rosrun fkie_nbv_planner camera_pose_tf.py __name:=camera_pose_pub \
-  _world_frame:=world _sensor_frame:=d455_color_optical_frame _rate:=10.0 \
+  _world_frame:=world _sensor_frame:=d455_depth_optical_frame _rate:=10.0 \
   camera_pose:=/robot/camera_pose >"${LOGDIR}/cam_pose.log" 2>&1 &
 register $!
 
@@ -317,7 +322,8 @@ if [ "${READY}" != "1" ]; then
   exit 2
 fi
 
-sleep 15
+echo "[agx-nbv] octomap settle ${NBV_OCTOMAP_SETTLE_S}s (profile=${SPAWN_PROFILE})"
+sleep "${NBV_OCTOMAP_SETTLE_S}"
 echo "[agx-nbv] waiting for action server..."
 for i in $(seq 1 60); do
   if timeout 2 rostopic list 2>/dev/null | grep -q '/robot/nbv_rrt/goal'; then
@@ -326,9 +332,33 @@ for i in $(seq 1 60); do
   sleep 1
 done
 
+# Empty-goal diagnosis before/after action (aisle_safe uses expanded ROI)
+BX=(-8.3603 -1.80 -1.80 -8.3603)
+BY=(-2.6852 -2.6852 -8.6852 -8.6852)
+if [ "${SPAWN_PROFILE}" != "aisle_safe" ]; then
+  BX=(-8.3603 -2.3603 -2.3603 -8.3603)
+  BY=(-2.6852 -2.6852 -8.6852 -8.6852)
+fi
+python3 /workspace/scripts/diagnose_fkie_nbv_empty.py \
+  --out "${EVDIR}/nbv_empty_diag_before.json" \
+  --boundary-x "${BX[@]}" --boundary-y "${BY[@]}" \
+  2>&1 | tee "${EVDIR}/nbv_empty_diag_before.txt" || true
+
 set +e
-python3 /workspace/scripts/verify_fkie_action.py _timeout:=90.0 2>&1 | tee "${EVDIR}/action_result.txt"
+# Pass matching Action boundary for aisle_safe
+if [ "${SPAWN_PROFILE}" = "aisle_safe" ]; then
+  python3 /workspace/scripts/verify_fkie_action.py _timeout:=90.0 \
+    _boundary_xy:='[[-8.3603,-2.6852],[-1.80,-2.6852],[-1.80,-8.6852],[-8.3603,-8.6852]]' \
+    2>&1 | tee "${EVDIR}/action_result.txt"
+else
+  python3 /workspace/scripts/verify_fkie_action.py _timeout:=90.0 2>&1 | tee "${EVDIR}/action_result.txt"
+fi
 set -e
+
+python3 /workspace/scripts/diagnose_fkie_nbv_empty.py \
+  --out "${EVDIR}/nbv_empty_diag_after.json" \
+  --boundary-x "${BX[@]}" --boundary-y "${BY[@]}" \
+  2>&1 | tee "${EVDIR}/nbv_empty_diag_after.txt" || true
 
 python3 - <<'PY' | tee "${EVDIR}/summary.txt"
 import re, pathlib
