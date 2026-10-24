@@ -94,7 +94,8 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 - 仓库 `warehouse_icra_large_viz.world`：**上层货架层板默认无货物**（全图无 z>1.2 的货模型）；仅货架旁地面有 `big_box*`（z≈0.64）。层上物体需另 spawn（primitive/YCB），不是原 world 自带。
 - **D455 传感器**：Gazebo depth 沿传感器 **+X** 看。`<pose>` 不得再用 optical 的 `(-π/2,0,-π/2)`（会相对 TF optical **+Z** 偏 90°）。正确：`d455_link` 上 `<pose>0 0 0 0 0 0</pose>` + `frameName=d455_depth_optical_frame`（link +X = optical +Z）。证据：`reports/d455_pointcloud_tf_debug.md`。
 - 定位默认 `--world-tf-mode tf`；`T_world_cam_calib.json` 仅历史调试，禁止再当权威外参。
-- Mode B：`--mode dynamic`（物理 + js/p3d），需后续控制器，**未验收**。
+- Mode B（2026-10-24 验收 B1–B4）：`AGX_MODE=dynamic` → 独立 URDF `rangercr10lidar_gazebo_dynamic.urdf`（js+p3d，无 static）；**禁用** Mode A 假 JS/静态 TF；`agx_mode_b_p3d_tf.py` + 运动学 `joint_bridge`/`car_cmd_bridge`（对齐 REMANI fake_mm，非轮式动力学）。入口 `scripts/start_agx_warehouse_mode_b.sh`。`gazebo_ros_control` 曾致 NaN，勿默认启用。
+- REMANI warehouse：`configs/fkie/agx_adapt/launch/remani_agx_warehouse.launch`（无 fake_mm）；`remani_init_aisle_observe.yaml` 覆盖 `fsm/init_state`；EE 目标须对齐 `/ee_current_pose`（相对 TF Link6 约 **-0.42 m Z**）；B4 运动证明用 `environment_mode=static_empty`；地图 `/map_generator/global_cloud`（`warehouse_cloud_to_remani.py`）仍需滤除机体点云。
 - 启动：`scripts/fkie_agx_warehouse_nbv.sh`；停仿：`scripts/fkie_stop_sim.sh`。
 - RViz：单窗口 `agx_nbv.rviz`（`DepthCloud_optical_frame` vs `Octomap_world_fused` 分开展示）。
 - Octomap：`configs/fkie/agx_adapt/launch/octomap_agx.launch`（max_range=5，filter_ground=false）。
@@ -120,7 +121,7 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | Grounded-SAM | NBV vendor + checkpoints；`.conda_envs/nbv_perception`；禁止 DovSG 运行时依赖 |
 | 对象记忆 | `perception/object_memory.py`（扩展字段 + confirm）；多视角 `run_multiview_ycb_capture.sh`（`AGX_ARM_POSE` bake） |
 | 评测 | `evaluate_object_discovery.py` + `run_object_discovery_benchmark.sh`；正式 **0.15 m**；召回分母=全场景 GT |
-| REMANI | `/ee_goal` PoseStamped `world`；FSM 需 odom+js、`target_type!=PRESET`；wbc@`remani-real-implementation`（gitignore）。**已验证**：`remani_sim` 在独立 master 上对 `/ee_goal` 返回 `[EE GOAL] committed`。Warehouse Mode B 未接 |
+| REMANI | `/ee_goal` PoseStamped `world`；FSM 需 odom+js、`target_type!=PRESET`；wbc@`remani-real-implementation`（gitignore）。**已验证**：独立 master `remani_sim` committed；**Warehouse Mode B**：同 master + 动态 AGX + `mm_controller` 执行，单目标 `SINGLE_EE_EXEC_OK`（相机 TF 位移），见 `reports/remani_single_goal_execution.md` |
 
 
 **Mode A 约束**：static 冻结关节 → 须 URDF bake；连杆合并后用 model×TF 与 gripper tip 校验。相机朝向已与 optical TF 对齐后，物体须落在真实视锥（光轴探针/GT 反投影），禁止用错误 TF 硬塞物体。

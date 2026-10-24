@@ -5,7 +5,8 @@ Modes:
   static  — Mode A: <static>true</static>, camera only (no js/p3d plugins).
             Arm joints are converted to *fixed* with the observation pose baked
             into joint origins so Gazebo geometry matches robot_state_publisher TF.
-  dynamic — Mode B: physics + gazebo joint_state + p3d (needs effort controllers later).
+  dynamic — Mode B: physics + p3d + gazebo_ros_control (position joints).
+            Does NOT bake arm joints. Mode A and Mode B write separate dst files.
 """
 from __future__ import print_function
 import argparse
@@ -70,10 +71,14 @@ CAMERA_BLOCK = """
   </gazebo>
 """
 
+# Mode B physics: joint_state + p3d. Arm/base tracking uses kinematic bridges
+# (set_model_configuration / set_model_state) matching REMANI fake_mm semantics.
+# gazebo_ros_control was tried but produced NaN physics on this URDF (see reports).
 DYNAMIC_PLUGINS = """
   <gazebo>
     <plugin name="joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
-      <robotNamespace></robotNamespace>
+      <!-- Empty namespace becomes model name; force global /joint_states. -->
+      <robotNamespace>/</robotNamespace>
       <jointName>
         fr_steering_joint, fr_wheel_joint, fl_steering_wheel_joint, fl_wheel_joint,
         rl_steering_wheel_joint, rl_wheel_joint, rr_steering_wheel_joint, rr_wheel_joint,
@@ -277,7 +282,9 @@ def main():
             print("WARN: Mode A without --arm-pose; Gazebo arm stays at URDF zero")
         extra = STATIC_TAG + CAMERA_BLOCK + ALIASES
     else:
+        # Mode B: keep revolute joints; js + p3d + camera (no ros_control).
         extra = DYNAMIC_PLUGINS + CAMERA_BLOCK + ALIASES
+        print("Mode B: dynamic js+p3d (kinematic bridges hold/track joints)")
 
     if "</robot>" not in text:
         raise SystemExit("no </robot>")

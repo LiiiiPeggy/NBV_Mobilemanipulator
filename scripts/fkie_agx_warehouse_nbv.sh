@@ -23,18 +23,27 @@ AGX_MODE="${AGX_MODE:-static}"
 # Spawn profile: baseline (goals=1 regression) | aisle_safe (no shelf/box overlap)
 SPAWN_PROFILE="${SPAWN_PROFILE:-aisle_safe}"
 SPAWN_CFG="${SPAWN_CFG:-/workspace/configs/fkie/agx_adapt/config/spawn_warehouse_${SPAWN_PROFILE}.yaml}"
-LOGDIR=/workspace/logs/fkie_agx_warehouse_nbv
-EVDIR=/workspace/data/metrics/fkie_agx_warehouse_nbv
 SHOTDIR=/workspace/reports/fkie_agx_integration_shots
-mkdir -p "${LOGDIR}" "${EVDIR}" "${SHOTDIR}"
-
 URDF_SRC=/workspace/third_party/agx/rangerboxcr10lidar_description/urdf/rangercr10lidar.urdf
-URDF_GZ=/workspace/configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo.urdf
+# Mode A and Mode B keep separate generated URDFs (do not overwrite each other).
+if [ "${AGX_MODE}" = "dynamic" ]; then
+  URDF_GZ=/workspace/configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo_dynamic.urdf
+  LOGDIR=/workspace/logs/fkie_agx_warehouse_mode_b
+  EVDIR=/workspace/data/metrics/fkie_agx_warehouse_mode_b
+else
+  URDF_GZ=/workspace/configs/fkie/agx_adapt/urdf/rangercr10lidar_gazebo.urdf
+  LOGDIR=/workspace/logs/fkie_agx_warehouse_nbv
+  EVDIR=/workspace/data/metrics/fkie_agx_warehouse_nbv
+fi
+mkdir -p "${LOGDIR}" "${EVDIR}" "${SHOTDIR}"
 PLANNER_YAML_DEFAULT=/workspace/configs/fkie/agx_adapt/config/nbv_planner_agx_warehouse.yaml
 RVIZ_CFG=/workspace/configs/fkie/agx_adapt/rviz/agx_nbv.rviz
+CTRL_YAML=/workspace/configs/fkie/agx_adapt/config/agx_mode_b_controllers.yaml
 NBV_OCTOMAP_SETTLE_S="${NBV_OCTOMAP_SETTLE_S:-35}"
 # Set SKIP_NBV_ACTION=1 for scene bringup without sending NBV Action (keeps Gazebo alive).
 SKIP_NBV_ACTION="${SKIP_NBV_ACTION:-0}"
+# Mode B: also start REMANI kinematic bridges (joint + car_cmd). Default on for dynamic.
+MODE_B_REMANI_BRIDGES="${MODE_B_REMANI_BRIDGES:-1}"
 # Extend GAZEBO_MODEL_PATH for optional YCB / local object models (does not spawn them).
 export GAZEBO_MODEL_PATH="/workspace/third_party/gazebo_objects/gazebo_ycb/models:/workspace/configs/fkie/agx_adapt/models:${GAZEBO_MODEL_PATH}"
 
@@ -137,6 +146,12 @@ for k, v in pose.items():
 PY
 )
 
+# Remove leftover model from a previous Mode B attempt.
+if [ "${AGX_MODE}" = "dynamic" ]; then
+  rosservice call /gazebo/delete_model "{model_name: agx_ranger_cr10}" >/dev/null 2>&1 || true
+  sleep 1
+fi
+
 echo "[agx-nbv] spawn AGX at (${RX},${RY},${RZ}) yaw=${RYAW} mode=${AGX_MODE}"
 rosrun gazebo_ros spawn_model -urdf -file "${URDF_GZ}" -model agx_ranger_cr10 \
   -x "${RX}" -y "${RY}" -z "${RZ}" -Y "${RYAW}" \
@@ -146,7 +161,7 @@ rosrun gazebo_ros spawn_model -urdf -file "${URDF_GZ}" -model agx_ranger_cr10 \
 }
 
 # Mode A: arm joints are fixed in URDF (baked). set_model_configuration is a no-op for static.
-# Still call for dynamic mode / logging.
+# Mode B: set initial configuration before controllers take over.
 python3 - <<PY >"${LOGDIR}/set_arm_pose.log" 2>&1
 import rospy, yaml
 from gazebo_msgs.srv import SetModelConfiguration
@@ -159,11 +174,65 @@ names = list(pose.keys())
 pos = [float(pose[n]) for n in names]
 resp = srv("agx_ranger_cr10", "", names, pos)
 print("success", resp.success, "status", resp.status_message)
-print("note: Mode A static ignores joint reconfiguration; pose baked into URDF fixed joints")
+print("mode=${AGX_MODE}")
 PY
 
-# Wheel joint_states only (arm is fixed in Mode A URDF → RSP uses URDF origins)
-python3 - <<PY >"${LOGDIR}/joint_states.log" 2>&1 &
+if [ "${AGX_MODE}" = "dynamic" ]; then
+  echo "[agx-nbv] Mode B: Gazebo js+p3d + kinematic joint/base bridges (no Mode A fake TF/JS)"
+  rosservice call /gazebo/unpause_physics "{}" >/dev/null 2>&1 || true
+  for i in $(seq 1 40); do
+    if timeout 1 rostopic echo -n 1 /joint_states >/dev/null 2>&1; then
+      echo "[agx-nbv] Mode B /joint_states live (${i}s)"; break
+    fi
+    sleep 1
+  done
+
+  rosrun robot_state_publisher robot_state_publisher >"${LOGDIR}/rsp.log" 2>&1 &
+  register $!
+
+  python3 /workspace/scripts/agx_mode_b_p3d_tf.py >"${LOGDIR}/p3d_tf.log" 2>&1 &
+  register $!
+
+  python3 /workspace/scripts/agx_mode_b_joint_bridge.py --arm-pose "${POSE_YAML}" \
+    >"${LOGDIR}/joint_bridge.log" 2>&1 &
+  register $!
+
+  if [ "${MODE_B_REMANI_BRIDGES}" = "1" ]; then
+    python3 /workspace/scripts/agx_mode_b_car_cmd_bridge.py >"${LOGDIR}/car_cmd_bridge.log" 2>&1 &
+    register $!
+  fi
+
+  # Re-assert spawn pose (recovery if physics pushed model).
+  python3 - <<PY >"${LOGDIR}/reset_spawn_pose.log" 2>&1
+import math, rospy
+from gazebo_msgs.msg import ModelState
+from gazebo_msgs.srv import SetModelState, GetModelState
+rospy.init_node("agx_mode_b_reset_spawn_pose")
+rospy.wait_for_service("/gazebo/set_model_state", timeout=30)
+get_s = rospy.ServiceProxy("/gazebo/get_model_state", GetModelState)
+set_s = rospy.ServiceProxy("/gazebo/set_model_state", SetModelState)
+cur = get_s("agx_ranger_cr10", "world")
+print("before", cur.pose.position.x, cur.pose.position.y, cur.pose.position.z, "success", cur.success)
+yaw = ${RYAW}
+q = (0.0, 0.0, math.sin(yaw/2.0), math.cos(yaw/2.0))
+st = ModelState()
+st.model_name = "agx_ranger_cr10"
+st.pose.position.x = float(${RX})
+st.pose.position.y = float(${RY})
+st.pose.position.z = float(${RZ})
+st.pose.orientation.x, st.pose.orientation.y, st.pose.orientation.z, st.pose.orientation.w = q
+st.twist.linear.x = st.twist.linear.y = st.twist.linear.z = 0.0
+st.twist.angular.x = st.twist.angular.y = st.twist.angular.z = 0.0
+st.reference_frame = "world"
+resp = set_s(st)
+print("set", resp.success, resp.status_message)
+rospy.sleep(0.5)
+cur2 = get_s("agx_ranger_cr10", "world")
+print("after", cur2.pose.position.x, cur2.pose.position.y, cur2.pose.position.z)
+PY
+else
+  # Mode A: fake /joint_states (wheels 0 + baked arm) + static world→base_link
+  python3 - <<PY >"${LOGDIR}/joint_states.log" 2>&1 &
 import rospy, yaml
 from sensor_msgs.msg import JointState
 from pathlib import Path
@@ -173,7 +242,6 @@ extras = [
   "fr_steering_joint","fr_wheel_joint","fl_steering_wheel_joint","fl_wheel_joint",
   "rl_steering_wheel_joint","rl_wheel_joint","rr_steering_wheel_joint","rr_wheel_joint",
 ]
-# Keep publishing arm names for tools that expect them; RSP ignores fixed-joint names.
 pub = rospy.Publisher("/joint_states", JointState, queue_size=1, latch=False)
 rate = rospy.Rate(50)
 while not rospy.is_shutdown():
@@ -184,25 +252,19 @@ while not rospy.is_shutdown():
   pub.publish(msg)
   rate.sleep()
 PY
-register $!
+  register $!
 
-rosrun robot_state_publisher robot_state_publisher >"${LOGDIR}/rsp.log" 2>&1 &
-register $!
+  rosrun robot_state_publisher robot_state_publisher >"${LOGDIR}/rsp.log" 2>&1 &
+  register $!
 
-# Mode A: ONLY static world→base_link (no p3d / no competing TF)
-python3 - <<PY >"${LOGDIR}/tf_world_base.log" 2>&1 &
+  python3 - <<PY >"${LOGDIR}/tf_world_base.log" 2>&1 &
 import rospy, math
 import tf2_ros
 from geometry_msgs.msg import TransformStamped
 rospy.init_node("agx_world_base_tf_static")
 br = tf2_ros.TransformBroadcaster()
 rx, ry, rz, ryaw = ${RX}, ${RY}, ${RZ}, ${RYAW}
-q = (
-  0.0,
-  0.0,
-  math.sin(ryaw/2.0),
-  math.cos(ryaw/2.0),
-)
+q = (0.0, 0.0, math.sin(ryaw/2.0), math.cos(ryaw/2.0))
 rate = rospy.Rate(50)
 while not rospy.is_shutdown():
   t = TransformStamped()
@@ -216,9 +278,9 @@ while not rospy.is_shutdown():
   br.sendTransform(t)
   rate.sleep()
 PY
-register $!
-
-rosservice call /gazebo/unpause_physics "{}" >/dev/null 2>&1 || true
+  register $!
+  rosservice call /gazebo/unpause_physics "{}" >/dev/null 2>&1 || true
+fi
 
 # Single points2 publisher
 python3 - <<'PY' >"${LOGDIR}/relay_pc.log" 2>&1 &
@@ -398,7 +460,7 @@ if command -v import >/dev/null 2>&1; then
 fi
 
 echo "============================================================"
-echo " AGX Mode A running. gzserver/gzclient should be 1 each."
+echo " AGX Mode ${AGX_MODE} running. gzserver/gzclient should be 1 each."
 echo " RViz: single agx_nbv.rviz (3D + Image RGB/Depth)."
 echo " Evidence: ${EVDIR}/"
 echo "============================================================"

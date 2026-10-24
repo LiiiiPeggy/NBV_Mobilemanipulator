@@ -1,0 +1,6 @@
+# Override fsm/init_state so mm_controller AUTO_STAY→CMD_CTRL uses observe pose
+# (degrees). Format with mobile_base_dof=2: [x, y, j1..j6_deg]
+# Matches configs/fkie/agx_adapt/config/arm_observe_aisle_table.yaml
+fsm:
+  init_state: [-2.1, -5.89, 51.566, -52.313, 22.918, 0.0, 97.402, 0.0]
+  init_gripper_close: true

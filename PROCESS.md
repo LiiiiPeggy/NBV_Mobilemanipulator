@@ -281,3 +281,12 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - `nbv_fkie` 内 `catkin_make` 编译 `third_party/wbc/remani_planner`（需 `libompl-dev`）。
 - 独立 `ROS_MASTER_URI=:11312` 启动 `remani_sim.launch`；`/ee_goal` 订阅者为 `remani_planner_node`；发布后日志 `[EE GOAL] committed`。
 - Warehouse Mode B / FKIE 真运动闭环未做：REMANI `fake_mm` 与 FKIE Gazebo 未融合；Stage 5 记阻塞。
+
+## 2026-10-24 Warehouse Mode B B1–B4
+
+- **根因 1**：`AGX_MODE=dynamic` 仍启 Mode A 假 JS/静态 TF → 与 p3d 冲突。修复：dynamic 分支改用 p3d TF + Gazebo js。
+- **根因 2**：`gazebo_ros_control` 在本 URDF 上易 NaN；改运动学桥（`set_model_configuration` / `set_model_state` 跟 REMANI `car_cmd`），与 fake_mm 同级语义。
+- **根因 3**：`mm_controller` AUTO_STAY→CMD_CTRL 用 `fsm/init_state` 覆盖当前关节 → 拉回默认 home。覆盖 `remani_init_aisle_observe.yaml`。
+- **根因 4**：REMANI `/ee_current_pose` 相对 TF Link6 低约 0.42 m（忽略底盘高度）。EE 目标须 `--align-remani-ee`。
+- **根因 5**：深度点云作 `/map_generator/global_cloud` 时 start 态 BACKEND COLLISION。B4 用 `static_empty`；地图滤机体待做。
+- 证据：`SINGLE_EE_EXEC_OK`；FSM `EXEC_TRAJ`；相机光学 TF Δ≈7.6 cm。报告：`reports/agx_mode_b_physics.md` 等。

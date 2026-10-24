@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!-- REMANI planner + mm_controller against AGX Mode B Gazebo (NO fake_mm).
+     Prerequisites: Mode B warehouse already running (joint_bridge + p3d_tf + car_cmd bridge).
+     Map: feed PointCloud2 on /map_generator/global_cloud (see warehouse_cloud_to_remani.py).
+-->
+<launch>
+  <arg name="map_size_x" default="40.0"/>
+  <arg name="map_size_y" default="40.0"/>
+  <arg name="map_size_z" default="4.0"/>
+  <arg name="target_type" default="1"/>
+  <!-- simulated: expects /map_generator/global_cloud; static_empty: B4 motion proof without warehouse ESDF -->
+  <arg name="environment_mode" default="static_empty"/>
+  <arg name="mm_param_file" default="$(find remani_planner)/config/mm_param_ranger_cr10.yaml"/>
+  <arg name="exp_param_file" default="$(find remani_planner)/config/exp_ranger_cr10_param.yaml"/>
+
+  <arg name="odom_topic" value="/mm/car/odom"/>
+  <arg name="joint_state_topic" value="/mm/mani/joint_state"/>
+  <arg name="joint_cmd_topic" value="/mm_controller_node/joint_cmd"/>
+  <arg name="gripper_cmd_topic" value="/mm_controller_node/gripper_cmd"/>
+  <arg name="gripper_state_topic" value="/mm/mani/gripper_state"/>
+
+  <param name="fsm/target_type" value="$(arg target_type)"/>
+  <param name="search/min_turning_radius" value="0.5"/>
+  <param name="search/max_seach_time" value="5.0"/>
+  <param name="environment_mode" value="$(arg environment_mode)"/>
+  <param name="grid_map/use_load_map" value="false" if="$(eval arg('environment_mode') == 'static_empty')"/>
+  <param name="grid_map/use_load_map" value="true" unless="$(eval arg('environment_mode') == 'static_empty')"/>
+  <!-- Keep mm_controller init joints aligned with Mode B observe hold pose.
+       Loaded again after include so it overrides exp_ranger_cr10_param.yaml. -->
+  <arg name="init_state_yaml" default="/workspace/configs/fkie/agx_adapt/config/remani_init_aisle_observe.yaml"/>
+
+  <include file="$(find remani_planner)/launch/advanced_param_sim.xml">
+    <arg name="map_size_x_" value="$(arg map_size_x)"/>
+    <arg name="map_size_y_" value="$(arg map_size_y)"/>
+    <arg name="map_size_z_" value="$(arg map_size_z)"/>
+    <arg name="exp_param_file" value="$(arg exp_param_file)"/>
+    <arg name="mm_param_file" value="$(arg mm_param_file)"/>
+    <arg name="odometry_topic" value="$(arg odom_topic)"/>
+    <arg name="joint_state_topic" value="$(arg joint_state_topic)"/>
+    <arg name="joint_cmd_topic" value="$(arg joint_cmd_topic)"/>
+    <arg name="gripper_cmd_topic" value="$(arg gripper_cmd_topic)"/>
+    <arg name="gripper_state_topic" value="$(arg gripper_state_topic)"/>
+    <arg name="camera_pose_topic" value="/robot/camera_pose"/>
+    <arg name="depth_topic" value="/realsense/depth/image_raw"/>
+    <arg name="cloud_topic" value="/realsense/depth/points2"/>
+    <arg name="cx" value="321.04638671875"/>
+    <arg name="cy" value="243.44969177246094"/>
+    <arg name="fx" value="387.229248046875"/>
+    <arg name="fy" value="387.229248046875"/>
+    <arg name="target_type" value="$(arg target_type)"/>
+    <arg name="min_turning_radius" value="0.5"/>
+    <arg name="max_seach_time" value="5.0"/>
+  </include>
+
+  <!-- Override after advanced_param_sim loads exp_*.yaml init_state -->
+  <rosparam file="$(arg init_state_yaml)" command="load"/>
+  <rosparam file="$(arg init_state_yaml)" command="load" ns="mm_controller_node"/>
+  <rosparam file="$(arg init_state_yaml)" command="load" ns="remani_planner_node"/>
+</launch>

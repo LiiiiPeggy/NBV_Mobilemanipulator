@@ -1,0 +1,86 @@
+# Mode B position controllers for AGX in Gazebo (gazebo_ros_control).
+# Wheels/steering held at 0 for chassis stability; CR10 tracks commanded angles.
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 50
+
+fr_steering_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: fr_steering_joint
+  pid: {p: 80.0, i: 0.01, d: 2.0}
+fr_wheel_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: fr_wheel_joint
+  pid: {p: 40.0, i: 0.01, d: 1.0}
+fl_steering_wheel_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: fl_steering_wheel_joint
+  pid: {p: 80.0, i: 0.01, d: 2.0}
+fl_wheel_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: fl_wheel_joint
+  pid: {p: 40.0, i: 0.01, d: 1.0}
+rl_steering_wheel_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: rl_steering_wheel_joint
+  pid: {p: 80.0, i: 0.01, d: 2.0}
+rl_wheel_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: rl_wheel_joint
+  pid: {p: 40.0, i: 0.01, d: 1.0}
+rr_steering_wheel_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: rr_steering_wheel_joint
+  pid: {p: 80.0, i: 0.01, d: 2.0}
+rr_wheel_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: rr_wheel_joint
+  pid: {p: 40.0, i: 0.01, d: 1.0}
+
+cr10_joint1_position_controller:
+  type: position_controllers/JointPositionController
+  joint: cr10_joint1
+  pid: {p: 300.0, i: 0.1, d: 30.0}
+cr10_joint2_position_controller:
+  type: position_controllers/JointPositionController
+  joint: cr10_joint2
+  pid: {p: 600.0, i: 0.2, d: 50.0}
+cr10_joint3_position_controller:
+  type: position_controllers/JointPositionController
+  joint: cr10_joint3
+  pid: {p: 450.0, i: 0.1, d: 40.0}
+cr10_joint4_position_controller:
+  type: position_controllers/JointPositionController
+  joint: cr10_joint4
+  pid: {p: 120.0, i: 0.05, d: 12.0}
+cr10_joint5_position_controller:
+  type: position_controllers/JointPositionController
+  joint: cr10_joint5
+  pid: {p: 120.0, i: 0.05, d: 12.0}
+cr10_joint6_position_controller:
+  type: position_controllers/JointPositionController
+  joint: cr10_joint6
+  pid: {p: 60.0, i: 0.01, d: 6.0}
+gripper_finger1_joint_position_controller:
+  type: position_controllers/JointPositionController
+  joint: gripper_finger1_joint
+  pid: {p: 20.0, i: 0.0, d: 1.0}
+
+# DefaultRobotHWSim PID — MUST be on param server before spawn_model.
+gazebo_ros_control:
+  pid_gains:
+    fr_steering_joint: {p: 80.0, i: 0.0, d: 5.0}
+    fr_wheel_joint: {p: 40.0, i: 0.0, d: 3.0}
+    fl_steering_wheel_joint: {p: 80.0, i: 0.0, d: 5.0}
+    fl_wheel_joint: {p: 40.0, i: 0.0, d: 3.0}
+    rl_steering_wheel_joint: {p: 80.0, i: 0.0, d: 5.0}
+    rl_wheel_joint: {p: 40.0, i: 0.0, d: 3.0}
+    rr_steering_wheel_joint: {p: 80.0, i: 0.0, d: 5.0}
+    rr_wheel_joint: {p: 40.0, i: 0.0, d: 3.0}
+    cr10_joint1: {p: 300.0, i: 0.1, d: 30.0}
+    cr10_joint2: {p: 600.0, i: 0.2, d: 50.0}
+    cr10_joint3: {p: 450.0, i: 0.1, d: 40.0}
+    cr10_joint4: {p: 120.0, i: 0.05, d: 12.0}
+    cr10_joint5: {p: 120.0, i: 0.05, d: 12.0}
+    cr10_joint6: {p: 60.0, i: 0.01, d: 6.0}
+    gripper_finger1_joint: {p: 20.0, i: 0.0, d: 1.0}

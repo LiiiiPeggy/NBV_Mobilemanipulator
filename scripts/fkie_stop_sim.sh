@@ -35,9 +35,17 @@ pkill -f 'octomap_server_node' 2>/dev/null || true
 pkill -f 'camera_pose_tf.py' 2>/dev/null || true
 pkill -f 'relay_points2' 2>/dev/null || true
 pkill -f 'agx_world_base_tf' 2>/dev/null || true
+pkill -f 'agx_joint_states_authority' 2>/dev/null || true
 pkill -f 'agx_ranger_footprint' 2>/dev/null || true
 pkill -f 'agx_js_fallback' 2>/dev/null || true
+pkill -f 'agx_mode_b_p3d_tf' 2>/dev/null || true
+pkill -f 'agx_mode_b_joint_bridge' 2>/dev/null || true
+pkill -f 'agx_mode_b_car_cmd_bridge' 2>/dev/null || true
+pkill -f 'controller_manager/spawner' 2>/dev/null || true
+pkill -f 'remani_planner_node' 2>/dev/null || true
+pkill -f 'mm_controller_node' 2>/dev/null || true
 pkill -f 'robot_state_publisher' 2>/dev/null || true
+pkill -f '/workspace/scripts/start_agx_warehouse_mode_b.sh' 2>/dev/null || true
 
 # Gazebo Classic + RViz (FKIE stack only lives in this container)
 killall -TERM gzserver gzclient rviz 2>/dev/null || true
