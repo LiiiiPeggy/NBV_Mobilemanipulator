@@ -88,12 +88,26 @@ def main():
             raise SystemExit("SYNC_FAIL: rgb/depth stamp delta %.3f > %.3f" % (sync_dt, args.slop * 4))
 
     stamp = rgb_msg.header.stamp
-    try:
-        tfm = buf.lookup_transform(
-            args.world_frame, args.optical_frame, stamp, rospy.Duration(0.5)
-        )
-    except Exception as e:
-        raise SystemExit("TF_FAIL: optical TF at rgb stamp: %s" % e)
+    tfm = None
+    tf_err = None
+    for wait in (0.5, 1.0, 2.0):
+        try:
+            tfm = buf.lookup_transform(
+                args.world_frame, args.optical_frame, stamp, rospy.Duration(wait)
+            )
+            break
+        except Exception as e:
+            tf_err = e
+            rospy.sleep(0.05)
+    if tfm is None:
+        # Last resort: latest TF (record that stamp match failed)
+        try:
+            tfm = buf.lookup_transform(
+                args.world_frame, args.optical_frame, rospy.Time(0), rospy.Duration(2.0)
+            )
+            tf_err = "fallback_Time0_after: %s" % tf_err
+        except Exception as e:
+            raise SystemExit("TF_FAIL: optical TF at rgb stamp: %s" % e)
 
     import cv2
 
@@ -125,6 +139,7 @@ def main():
         "quat_xyzw": [float(r.x), float(r.y), float(r.z), float(r.w)],
         "stamp": stamp.to_sec(),
         "tf_lookup_stamp": stamp.to_sec(),
+        "tf_note": None if tf_err is None or not isinstance(tf_err, str) else tf_err,
     }
     cam_info = {
         "frame_id": info_msg.header.frame_id,

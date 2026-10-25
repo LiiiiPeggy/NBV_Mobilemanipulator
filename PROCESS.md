@@ -327,8 +327,16 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 ## 2026-10-25 F1–F4：空目标诊断 + 同帧 GSAM + 在线对象闭环
 
 - **F1 根因**：`goals=[]` 常伴随 `request_base_pose=true` + 有效 `goal_pose_3d`（代码：无 best_branch 时回退 best frontier）。另有低高度 frontier（z≈0.62）转 EE 后贴地 → IK 失败；不可一律当算法崩溃，也不可发明 EE。
-- **F1 修复**：`save_fkie_action_result.py` 分类 A–H；高度可行性 [0.85,1.75]；`arm_height_min=0.95`；`restart_fkie_nbv_planner.sh` 强制 `octomap:=octomap_full`。
+- **F1 修复（初版）**：`save_fkie_action_result.py` 分类 A–H；曾用高度 [0.85,1.75]；`restart_fkie_nbv_planner.sh` 强制 `octomap:=octomap_full`。
 - **F2 根因**：感知脚本 live 重订阅导致与存盘 RGB 不同帧。
 - **F2 修复**：`capture_synchronized_rgbd_snapshot.py` + `perceive_snapshot_gsam.py`（conda，只读快照）；失败显式 status。
 - **F3**：`run_fkie_online_gsam_step.py` + ObjectMemory + GT eval。证据：`fkie_feasible_base` `SINGLE_EE_EXEC_OK`（ee≈1.4 cm）；初始观测 frame recall≈0.27 / confirmed TP=2。
-- **F4**：`run_fkie_remani_exploration.sh`；假 complete 仅 1 次 settle-retry；空目标/执行失败合法终止。未决：连续多步全部到位与 yaw-only 视场质量。
+- **F4**：`run_fkie_remani_exploration.sh`；假 complete settle-retry；空目标/执行失败合法终止。
+
+## 2026-10-26：取消高度硬过滤 + G_BASE_POSE + 连续 3 步发现
+
+- **高度门**：固定 0.85–1.75 拒绝合法低/高 frontier → 改为结构检查 + REMANI/底盘执行。
+- **底盘语义**：`request_base_pose` 走 `execute_base_pose_goal.py`，禁止 `nbv_to_remani_ee_goal` 转 EE。
+- **假 complete 根因**：① mm_controller 旧 `car_cmd` 把车拖到 ≈(8.4,7.5) 出多边形；② 重启后 `cached_nodes` 空。修复：aisle hold 预检、FKIE warm-up、`sample_in_unknown=true`。
+- **多候选**：step2 候选 0/1 REMANI 失败后候选 2 成功（ee≈5 mm）。
+- **验收 run**：`online_20261025_173649_seed42_reach` — 2×base + 1×camera 全到位；记忆 unique Recall≈0.36 / confirmed≈0.27。报告：`reports/fkie_multistep_reachability_and_discovery.md`。

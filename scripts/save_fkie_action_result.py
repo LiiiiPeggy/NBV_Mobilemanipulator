@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Formal FKIE NbvPlanner Action client — structured JSON + empty-goal diagnosis.
 
-Valid NBV sources (fail-closed if none):
-  A) result.goals[] non-empty (arm branch)
-  B) request_base_pose && goal_pose_3d is a non-trivial camera pose
-Never invent a substitute EE target. Classify goals=[] honestly.
+Valid action sources (fail-closed if none):
+  A) result.goals[] non-empty → action_type=camera_nbv (arm/camera poses)
+  B) request_base_pose && valid goal_pose_3d → action_type=base_pose
+     (FKIE wants base relocation toward frontier; NOT an EE/camera optical goal)
+Never invent a substitute EE. No fixed camera-height hard reject — REMANI/base
+executors decide reachability.
 """
 from __future__ import print_function
 
@@ -62,14 +64,24 @@ def pose_norm(pose_dict):
     return math.sqrt(p["x"] ** 2 + p["y"] ** 2 + p["z"] ** 2) + abs(o["w"]) + abs(o["x"]) + abs(o["y"]) + abs(o["z"])
 
 
-def optical_nbv_feasible(pose_dict, z_min=0.85, z_max=1.75):
-    """FKIE samples yaw-only poses; reject floor/sky heights that break Mode B EE IK."""
+def pose_struct_valid(pose_dict):
+    """Basic legality: finite xyz + finite non-degenerate quaternion. No height band."""
     if not pose_dict or not pose_dict.get("pose"):
         return False, "missing_pose"
-    z = float(pose_dict["pose"]["position"]["z"])
-    if z < z_min or z > z_max:
-        return False, "camera_z=%.3f outside [%.2f,%.2f]" % (z, z_min, z_max)
+    p = pose_dict["pose"]["position"]
+    o = pose_dict["pose"]["orientation"]
+    vals = [p["x"], p["y"], p["z"], o["x"], o["y"], o["z"], o["w"]]
+    if not all(math.isfinite(float(v)) for v in vals):
+        return False, "non_finite"
+    qn = math.sqrt(o["x"] ** 2 + o["y"] ** 2 + o["z"] ** 2 + o["w"] ** 2)
+    if qn < 0.5:
+        return False, "degenerate_quat_norm=%.3f" % qn
     return True, "ok"
+
+
+def yaw_from_quat_xyzw(o):
+    x, y, z, w = float(o["x"]), float(o["y"]), float(o["z"]), float(o["w"])
+    return math.atan2(2.0 * (w * z + x * y), 1.0 - 2.0 * (y * y + z * z))
 
 
 def marker_stats(topic, timeout=1.5):
@@ -114,16 +126,16 @@ def classify_empty(result_dict, ctx):
     best = ctx.get("best_branch") or {}
 
     if req_base and gp_ok:
-        feas, why = optical_nbv_feasible(gp)
+        feas, why = pose_struct_valid(gp)
         if feas:
             return (
                 "G_BASE_POSE",
-                "goals[] empty but request_base_pose with height-feasible goal_pose_3d "
-                "(FKIE wants base+camera move to frontier)",
+                "goals[] empty but request_base_pose with valid goal_pose_3d "
+                "(FKIE base relocation toward frontier — not an EE target)",
             )
         return (
-            "D_FILTERED",
-            "request_base_pose goal_pose_3d present but not Mode-B EE-feasible (%s)" % why,
+            "H_ERROR",
+            "request_base_pose goal_pose_3d structurally invalid (%s)" % why,
         )
     if complete and not gp_ok and not (fr.get("n_posed") or fr.get("n_markers")):
         return "A_COMPLETE", "complete_exploration=true and no usable frontier/goal_pose_3d"
@@ -295,43 +307,77 @@ def main():
     out["empty_class"] = code
     out["empty_reason"] = reason
 
-    primary = None
+    action_type = None
     source = None
     feasibility = {"ok": False, "reason": "none"}
-    if goals:
-        primary = goals[0]
-        source = "goals[0]"
-        feasibility = {"ok": True, "reason": "goals[0]"}
-        feas, why = optical_nbv_feasible(primary)
-        feasibility = {"ok": feas, "reason": why}
-        if not feas:
-            primary = None
-            source = None
-    elif accept_base and bool(result.request_base_pose) and pose_norm(out["goal_pose_3d"]) > 0.05:
-        feas, why = optical_nbv_feasible(out["goal_pose_3d"])
-        feasibility = {"ok": feas, "reason": why, "kind": "goal_pose_3d_request_base_pose"}
-        if feas:
-            primary = out["goal_pose_3d"]
-            source = "goal_pose_3d_request_base_pose"
-        else:
-            # Keep diagnosis; do not invent a substitute EE
-            out["empty_class"] = "D_FILTERED"
-            out["empty_reason"] = (
-                "request_base_pose goal_pose_3d not Mode-B EE-feasible (%s); refusing invent" % why
-            )
-    # Do NOT fall through to trivial zero goal_pose_3d
+    candidate_indices = []
 
-    usable = primary is not None
-    out["feasibility"] = feasibility
-    out["usable_nbv"] = bool(usable)
-    out["nbv_source"] = source
-    if usable:
+    # Prefer arm/camera goals[] — structural validity only (REMANI decides reachability).
+    valid_goals = []
+    for g in goals:
+        ok, why = pose_struct_valid(g)
+        g["struct_ok"] = ok
+        g["struct_reason"] = why
+        if ok:
+            valid_goals.append(g)
+            candidate_indices.append(int(g.get("index", len(candidate_indices))))
+
+    if valid_goals:
+        action_type = "camera_nbv"
+        source = "goals[%d]" % int(valid_goals[0].get("index", 0))
+        feasibility = {"ok": True, "reason": "struct_ok", "n_candidates": len(valid_goals)}
+        primary = valid_goals[0]
         p = primary["pose"]["position"]
         o = primary["pose"]["orientation"]
         out["camera_goal_xyz"] = [p["x"], p["y"], p["z"]]
         out["camera_goal_quat_xyzw"] = [o["x"], o["y"], o["z"], o["w"]]
         out["orientation_source"] = "fkie_action_quaternion"
-        out["selected_goal_index"] = primary.get("index", 0)
+        out["selected_goal_index"] = int(primary.get("index", 0))
+        out["camera_candidates"] = [
+            {
+                "index": int(g.get("index", i)),
+                "xyz": [
+                    g["pose"]["position"]["x"],
+                    g["pose"]["position"]["y"],
+                    g["pose"]["position"]["z"],
+                ],
+                "quat_xyzw": [
+                    g["pose"]["orientation"]["x"],
+                    g["pose"]["orientation"]["y"],
+                    g["pose"]["orientation"]["z"],
+                    g["pose"]["orientation"]["w"],
+                ],
+            }
+            for i, g in enumerate(valid_goals)
+        ]
+    elif accept_base and bool(result.request_base_pose) and pose_norm(out["goal_pose_3d"]) > 0.05:
+        ok, why = pose_struct_valid(out["goal_pose_3d"])
+        feasibility = {"ok": ok, "reason": why, "kind": "base_pose"}
+        if ok:
+            action_type = "base_pose"
+            source = "goal_pose_3d_request_base_pose"
+            gp = out["goal_pose_3d"]["pose"]
+            # Base relocation uses XY + yaw; keep FKIE z only as metadata (not EE).
+            out["base_goal_xy"] = [gp["position"]["x"], gp["position"]["y"]]
+            out["base_goal_yaw"] = yaw_from_quat_xyzw(gp["orientation"])
+            out["base_goal_z_meta"] = gp["position"]["z"]
+            out["base_goal_quat_xyzw"] = [
+                gp["orientation"]["x"],
+                gp["orientation"]["y"],
+                gp["orientation"]["z"],
+                gp["orientation"]["w"],
+            ]
+            # Do NOT populate camera_goal_* for base requests — prevents EE misuse.
+        else:
+            out["empty_class"] = "H_ERROR"
+            out["empty_reason"] = "request_base_pose goal_pose_3d invalid (%s)" % why
+
+    usable = action_type is not None
+    out["action_type"] = action_type
+    out["candidate_indices"] = candidate_indices
+    out["feasibility"] = feasibility
+    out["usable_nbv"] = bool(usable)
+    out["nbv_source"] = source
 
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, indent=2))
@@ -344,10 +390,14 @@ def main():
             "n_goals",
             "usable_nbv",
             "nbv_source",
+            "action_type",
             "empty_class",
             "empty_reason",
             "camera_goal_xyz",
             "camera_goal_quat_xyzw",
+            "base_goal_xy",
+            "base_goal_yaw",
+            "candidate_indices",
         )
         if k in out
     }

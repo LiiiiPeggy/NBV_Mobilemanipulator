@@ -40,7 +40,8 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 - **官方未开源整机**：`fkie-nbv-planner` 无 URDF/xacro/平台 Gazebo 模型；仅约定话题（octomap / camera_pose / MBF footprint）与 RealSense 插件依赖。
 - 仓库依赖模型：`shelves_high`、`big_box3/4`、`Floor_room` → `scripts/fetch_fkie_gazebo_models.sh`；compose 设 `GAZEBO_MODEL_PATH`。
 - **易错**：Action SUCCEEDED + 空 `goals` ≠ 有效 NBV；完整闭环还需 RealSense 点云链路与 footprint（官方平台栈未进本仓）。
-- **`goals=[]` 语义（2026-10-25）**：无 RRT best_branch 时 FKIE 设 `request_base_pose` + `goal_pose_3d=best_frontier`（`NBVPlanner.cpp`）。`save_fkie_action_result.py` 分类 A–H；Mode B 仅当相机目标高度 ∈[0.85,1.75] 才 `usable_nbv`（过低 z→EE 贴地 IK 失败）。重启 planner 必须 `octomap:=octomap_full`。aisle_safe：`arm_height_min=0.95`。
+- **`goals=[]` 语义**：无 RRT best_branch 时 FKIE 设 `request_base_pose` + `goal_pose_3d=best_frontier`（`NBVPlanner.cpp`）。`save_fkie_action_result.py`：`goals[]`→`camera_nbv`；`request_base_pose`→`base_pose`（XY+yaw，**禁止**当 EE）。**不再**用固定 0.85–1.75 m 高度硬拒绝；结构合法后由 REMANI/底盘执行判可达。重启 planner 必须 `octomap:=octomap_full`。
+- **连续 NBV 易错（2026-10-26）**：REMANI 残留 `car_cmd` 可把底盘拖出 ROI → 假 `A_COMPLETE`；跑前 `ensure_agx_aisle_hold.py`。新 planner 无 `cached_nodes` 也会立刻 complete → 探索脚本 warm-up Action；aisle_safe：`sample_in_unknown: true`，`utility_weight_visited_cell: 40`，`arm_height_min/max` 仅 RRT 采样带。底盘：`execute_base_pose_goal.py`（SetModelState）。多候选：`run_fkie_online_gsam_step.py` 最多试 3 个 `goals[]`。
 - **同帧 GSAM**：`capture_synchronized_rgbd_snapshot.py` + `perceive_snapshot_gsam.py`（conda `nbv_perception`，禁止推理时重订 live 图）。在线调度：`run_fkie_remani_exploration.sh`。
 - **有效 NBV 适配验证（2026-10-22）**：`scripts/fkie_effective_nbv_test.sh` + `configs/fkie/adapt_test/nbv_minimal.world` → `VERIFY_FKIE_NONEMPTY_GOALS`，goals=1。要点：
   1. `LD_LIBRARY_PATH` 含 `/usr/lib/x86_64-linux-gnu/gazebo-11/plugins`（`libDepthCameraPlugin.so`）

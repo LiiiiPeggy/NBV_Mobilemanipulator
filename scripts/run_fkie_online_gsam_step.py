@@ -147,6 +147,91 @@ def update_memory(mem_path, perc_path, gt, view_id, out_eval):
     return json.loads(Path(out_eval).read_text())
 
 
+def wait_robot_settle(seconds=2.0):
+    """Brief settle so TF/map catch up after motion (limited, not infinite)."""
+    time.sleep(float(seconds))
+    try:
+        motion_end = rospy.Time.now().to_sec()
+    except Exception:
+        motion_end = time.time()
+    return motion_end
+
+
+def try_camera_candidates(fkie_j, fkie_path, step_dir, log_dir, goal_id_prefix, max_candidates=3):
+    """Convert+execute high-gain FKIE goals[] via REMANI; stop at first success."""
+    cands = fkie_j.get("camera_candidates") or []
+    if not cands and fkie_j.get("camera_goal_xyz"):
+        cands = [
+            {
+                "index": int(fkie_j.get("selected_goal_index") or 0),
+                "xyz": fkie_j["camera_goal_xyz"],
+                "quat_xyzw": fkie_j.get("camera_goal_quat_xyzw"),
+            }
+        ]
+    attempts = []
+    for i, c in enumerate(cands[: max(1, int(max_candidates))]):
+        idx = int(c.get("index", i))
+        ee_path = step_dir / ("ee_goal_cand%02d.json" % i)
+        exec_path = step_dir / ("exec_cand%02d.json" % i)
+        goal_id = "%s_cam%02d" % (goal_id_prefix, i)
+        conv = run(
+            [
+                PY,
+                str(ROOT / "scripts/nbv_to_remani_ee_goal.py"),
+                "--from-fkie-json",
+                str(fkie_path),
+                "--goal-index",
+                str(idx),
+                "--align-remani-ee",
+                "--publish",
+                "--out",
+                str(ee_path),
+            ],
+            log_path=str(log_dir / ("convert_cand%02d.log" % i)),
+            check=False,
+        )
+        if conv.returncode != 0 or not ee_path.is_file():
+            attempts.append({"index": idx, "ok": False, "reason": "convert_fail"})
+            continue
+        ee = json.loads(ee_path.read_text())
+        ee["goal_id"] = goal_id
+        ee["candidate_index"] = idx
+        ee_path.write_text(json.dumps(ee, indent=2))
+        # Primary alias for report
+        (step_dir / "ee_goal.json").write_text(json.dumps(ee, indent=2))
+        ex = run(
+            [
+                PY,
+                str(ROOT / "scripts/execute_single_ee_goal.py"),
+                "--from-json",
+                str(ee_path),
+                "--monitor-only",
+                "--goal-id",
+                goal_id,
+                "--timeout",
+                "120",
+                "--out",
+                str(exec_path),
+            ],
+            log_path=str(log_dir / ("exec_cand%02d.log" % i)),
+            check=False,
+        )
+        exec_j = json.loads(exec_path.read_text()) if exec_path.is_file() else {"ok": False}
+        ok = bool(exec_j.get("ok"))
+        attempts.append(
+            {
+                "index": idx,
+                "ok": ok,
+                "ee_err_m": (exec_j.get("stages") or {}).get("ee_err_m"),
+                "reason": None if ok else "remani_exec_fail",
+            }
+        )
+        if ok:
+            (step_dir / "exec.json").write_text(json.dumps(exec_j, indent=2))
+            return True, attempts, exec_j
+    return False, attempts, {}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-dir", required=True)
@@ -198,8 +283,9 @@ def main():
     if args.step >= 1 and not args.skip_motion:
         write_status(status_path, phase="REQUEST_FKIE_NBV", fkie="CALLING", camera="STABLE", gsam="WAITING")
         fkie_j = {}
-        # At most one settle-retry when planner just restarted (empty cache → false complete).
-        for attempt in (1, 2):
+        # Settle-retry: after octomap reset / planner restart / base move, FKIE may
+        # briefly report complete or empty frontiers before map/TF catch up.
+        for attempt in (1, 2, 3):
             fkie = run(
                 [
                     PY,
@@ -220,15 +306,24 @@ def main():
             empty_cls = fkie_j.get("empty_class")
             if usable:
                 break
-            if attempt == 1 and empty_cls in ("A_COMPLETE", "B_NO_FRONTIER", "C_NO_BRANCH"):
-                print("FKIE_SETTLE_RETRY after", empty_cls)
-                time.sleep(12.0)
+            if attempt < 3 and empty_cls in (
+                "A_COMPLETE",
+                "B_NO_FRONTIER",
+                "C_NO_BRANCH",
+                "E_TF",
+                "E_MAP",
+            ):
+                wait_s = 8.0 + 6.0 * attempt
+                print("FKIE_SETTLE_RETRY after", empty_cls, "wait", wait_s)
+                time.sleep(wait_s)
                 continue
             break
         usable = bool(fkie_j.get("usable_nbv"))
+        action_type = fkie_j.get("action_type")
         write_status(
             status_path,
             fkie=fkie_j.get("empty_class") or fkie_j.get("action_state_name") or "FAIL",
+            action_type=action_type,
             phase="CHECK_FEASIBILITY",
         )
         if not usable:
@@ -245,61 +340,106 @@ def main():
             print("STEP_TERMINATED_NO_USABLE_NBV")
             raise SystemExit(10)
 
-        write_status(status_path, phase="REMANI_PLAN", remani="CONVERT")
-        run(
-            [
-                PY,
-                str(ROOT / "scripts/nbv_to_remani_ee_goal.py"),
-                "--from-fkie-json",
-                str(fkie_path),
-                "--align-remani-ee",
-                "--publish",
-                "--out",
-                str(ee_path),
-            ],
-            log_path=str(log_dir / "convert.log"),
-        )
         goal_id = "online_%s_step%03d" % (run_dir.name, args.step)
-        ee = json.loads(ee_path.read_text())
-        ee["goal_id"] = goal_id
-        ee_path.write_text(json.dumps(ee, indent=2))
+        attempts = []
+        exec_j = {}
 
-        write_status(status_path, phase="EXECUTE", remani="EXEC_TRAJ", camera="MOVING")
-        ex = run(
-            [
-                PY,
-                str(ROOT / "scripts/execute_single_ee_goal.py"),
-                "--from-json",
-                str(ee_path),
-                "--monitor-only",
-                "--goal-id",
-                goal_id,
-                "--timeout",
-                "120",
-                "--out",
-                str(exec_path),
-            ],
-            log_path=str(log_dir / "exec.log"),
-            check=False,
-        )
-        exec_j = json.loads(exec_path.read_text()) if exec_path.is_file() else {"ok": False}
-        exec_ok = bool(exec_j.get("ok"))
-        write_status(
-            status_path,
-            phase="VERIFY_ARRIVAL",
-            remani="OK" if exec_ok else "FAIL",
-            camera="SETTLING" if exec_ok else "FAIL",
-        )
-        if not exec_ok:
-            (step_dir / "terminate.json").write_text(
-                json.dumps({"terminated": True, "reason": "remani_exec_fail", "step": args.step}, indent=2)
+        if action_type == "base_pose":
+            write_status(status_path, phase="EXECUTE_BASE", remani="BASE_CMD", camera="MOVING")
+            base_out = step_dir / "base_exec.json"
+            ex = run(
+                [
+                    PY,
+                    str(ROOT / "scripts/execute_base_pose_goal.py"),
+                    "--from-fkie-json",
+                    str(fkie_path),
+                    "--timeout",
+                    "100",
+                    "--out",
+                    str(base_out),
+                ],
+                log_path=str(log_dir / "base_exec.log"),
+                check=False,
             )
-            print("STEP_TERMINATED_REMANI_FAIL")
-            raise SystemExit(11)
-        # settle + require fresher stamps than motion end
-        time.sleep(2.0)
-        motion_end_stamp = rospy.Time.now().to_sec()
-        time.sleep(0.5)
+            exec_j = json.loads(base_out.read_text()) if base_out.is_file() else {"ok": False}
+            exec_path.write_text(json.dumps(exec_j, indent=2))
+            exec_ok = bool(exec_j.get("ok"))
+            attempts.append({"action_type": "base_pose", "ok": exec_ok})
+            write_status(
+                status_path,
+                phase="VERIFY_ARRIVAL",
+                remani="BASE_OK" if exec_ok else "BASE_FAIL",
+                camera="SETTLING" if exec_ok else "FAIL",
+            )
+            if not exec_ok:
+                (step_dir / "terminate.json").write_text(
+                    json.dumps(
+                        {
+                            "terminated": True,
+                            "reason": "base_exec_fail",
+                            "step": args.step,
+                            "attempts": attempts,
+                        },
+                        indent=2,
+                    )
+                )
+                print("STEP_TERMINATED_BASE_FAIL")
+                raise SystemExit(11)
+            # Keep Mode B car bridge hold at arrived pose (avoid idle snap-back).
+            run(
+                [
+                    PY,
+                    str(ROOT / "scripts/execute_base_pose_goal.py"),
+                    "--from-fkie-json",
+                    str(fkie_path),
+                    "--timeout",
+                    "8",
+                    "--out",
+                    str(step_dir / "base_relatch.json"),
+                ],
+                log_path=str(log_dir / "base_relatch.log"),
+                check=False,
+            )
+        else:
+            # camera_nbv: try a few FKIE goals[] via REMANI (no invented substitutes)
+            write_status(status_path, phase="REMANI_PLAN", remani="CONVERT", camera="MOVING")
+            exec_ok, attempts, exec_j = try_camera_candidates(
+                fkie_j, fkie_path, step_dir, log_dir, goal_id, max_candidates=3
+            )
+            (step_dir / "candidate_attempts.json").write_text(json.dumps(attempts, indent=2))
+            write_status(
+                status_path,
+                phase="VERIFY_ARRIVAL",
+                remani="OK" if exec_ok else "FAIL",
+                camera="SETTLING" if exec_ok else "FAIL",
+            )
+            if not exec_ok:
+                (step_dir / "terminate.json").write_text(
+                    json.dumps(
+                        {
+                            "terminated": True,
+                            "reason": "remani_all_candidates_fail",
+                            "step": args.step,
+                            "attempts": attempts,
+                        },
+                        indent=2,
+                    )
+                )
+                print("STEP_TERMINATED_REMANI_FAIL")
+                raise SystemExit(11)
+
+        motion_end_stamp = wait_robot_settle(4.0)
+        (step_dir / "motion_meta.json").write_text(
+            json.dumps(
+                {
+                    "action_type": action_type,
+                    "attempts": attempts,
+                    "motion_end_stamp": motion_end_stamp,
+                    "exec_ok": exec_ok,
+                },
+                indent=2,
+            )
+        )
 
     # Capture + GSAM on fixed snapshot
     obs_dir = step_dir / "observation"
@@ -325,11 +465,13 @@ def main():
         last_memory_recall=(report.get("memory_eval") or {}).get("unique_recall"),
     )
 
+    fkie_meta = json.loads(fkie_path.read_text()) if fkie_path.is_file() else {}
     summary = {
         "step": args.step,
         "snapshot_id": snap_id,
         "exec_ok": exec_ok,
-        "fkie_usable": bool(json.loads(fkie_path.read_text()).get("usable_nbv")) if fkie_path.is_file() else None,
+        "action_type": fkie_meta.get("action_type"),
+        "fkie_usable": bool(fkie_meta.get("usable_nbv")) if fkie_meta else None,
         "memory_update": report,
         "observation_dir": str(obs_dir),
         "wall_time": datetime.utcnow().isoformat() + "Z",

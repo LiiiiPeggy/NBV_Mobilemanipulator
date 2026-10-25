@@ -87,6 +87,14 @@ print("MAP_READY")
 PY
 fi
 
+# Recover if a prior REMANI car_cmd dragged the chassis out of the ROI.
+echo "[explore] ensure AGX camera inside exploration polygon..."
+python3 /workspace/scripts/ensure_agx_aisle_hold.py \
+  --arm-pose /workspace/configs/fkie/agx_adapt/config/arm_observe_aisle_table.yaml \
+  --force \
+  --out "$RUN_DIR/aisle_hold_preflight.json" \
+  | tee "$LOGDIR/aisle_hold_preflight.log"
+
 if [ "${RESET_OCTOMAP}" = "1" ]; then
   echo "[explore] resetting OctoMap for fresh unknown space..."
   rosservice call /robot/octomap_server/reset "{}" || true
@@ -97,6 +105,23 @@ if [ "${RESTART_FKIE}" = "1" ]; then
   bash /workspace/scripts/restart_fkie_nbv_planner.sh | tee "$LOGDIR/fkie_restart.log"
   sleep 5
 fi
+# Re-assert aisle car_cmd hold after planner restart (mm_controller may republish).
+python3 /workspace/scripts/ensure_agx_aisle_hold.py \
+  --hold-sec 2.0 \
+  --out "$RUN_DIR/aisle_hold_post_fkie.json" \
+  | tee -a "$LOGDIR/aisle_hold_preflight.log"
+
+# Warm FKIE once so cached_nodes/frontiers exist (fresh planner otherwise returns
+# A_COMPLETE with empty cache before any RRT growth).
+echo "[explore] FKIE warm-up Action (allow-empty)..."
+python3 /workspace/scripts/save_fkie_action_result.py \
+  --out "$RUN_DIR/fkie_warmup.json" \
+  --timeout 120 \
+  --allow-empty \
+  | tee "$LOGDIR/fkie_warmup.log" || true
+python3 /workspace/scripts/ensure_agx_aisle_hold.py --hold-sec 1.5 \
+  --out "$RUN_DIR/aisle_hold_post_warmup.json" \
+  | tee -a "$LOGDIR/aisle_hold_preflight.log" || true
 
 # Step 0: initial observation (empty memory)
 DEVICE_ARGS=()
@@ -126,8 +151,12 @@ for s in $(seq 1 "$MAX_STEPS"); do
     break
   elif [ "$rc" -eq 11 ]; then
     TERMINATED=1
-    TERMINATE_REASON="remani_exec_fail"
-    echo "[explore] terminate: REMANI exec fail at step $s"
+    # Distinguish base vs remani from terminate.json if present
+    TERMINATE_REASON="exec_fail"
+    if [ -f "$RUN_DIR/steps/$(printf '%03d' "$s")/terminate.json" ]; then
+      TERMINATE_REASON=$(python3 -c "import json;print(json.load(open('$RUN_DIR/steps/$(printf '%03d' "$s")/terminate.json')).get('reason','exec_fail'))")
+    fi
+    echo "[explore] terminate: $TERMINATE_REASON at step $s"
     break
   elif [ "$rc" -ne 0 ]; then
     TERMINATED=1

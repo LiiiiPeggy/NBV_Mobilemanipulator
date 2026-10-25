@@ -43,11 +43,20 @@ def main():
             f = json.loads(fk.read_text())
             row["fkie_empty_class"] = f.get("empty_class")
             row["usable_nbv"] = f.get("usable_nbv")
+            row["action_type"] = f.get("action_type")
             row["camera_goal_xyz"] = f.get("camera_goal_xyz")
+            row["base_goal_xy"] = f.get("base_goal_xy")
         if ex.is_file():
             e = json.loads(ex.read_text())
             row["ee_err_m"] = (e.get("stages") or {}).get("ee_err_m")
             row["exec_ok"] = e.get("ok")
+            if e.get("action_type") == "base_pose":
+                row["path_length_xy"] = e.get("path_length_xy")
+                row["base_xy_err"] = (e.get("final") or {}).get("xy_err")
+                row["elapsed_s"] = e.get("elapsed_s")
+        mm = sd / "motion_meta.json"
+        if mm.is_file():
+            row["motion_meta"] = json.loads(mm.read_text())
         if (sd / "terminate.json").is_file():
             row["terminate"] = json.loads((sd / "terminate.json").read_text())
         rows.append(row)
@@ -76,6 +85,29 @@ def main():
     err = [r.get("ee_err_m") for r in rows if r.get("ee_err_m") is not None]
     err_x = [r["step"] for r in rows if r.get("ee_err_m") is not None]
 
+    # Wall-clock axis from step_summary wall_time if present
+    t0 = None
+    ts, conf_t, recall_t = [], [], []
+    for r in rows:
+        wt = None
+        if isinstance(r.get("wall_time"), str) and r["wall_time"].endswith("Z"):
+            try:
+                from datetime import datetime
+
+                wt = datetime.strptime(r["wall_time"], "%Y-%m-%dT%H:%M:%S.%fZ").timestamp()
+            except Exception:
+                try:
+                    wt = datetime.strptime(r["wall_time"], "%Y-%m-%dT%H:%M:%SZ").timestamp()
+                except Exception:
+                    wt = None
+        if wt is None:
+            continue
+        if t0 is None:
+            t0 = wt
+        ts.append(wt - t0)
+        conf_t.append(r.get("n_confirmed") or 0)
+        recall_t.append(r.get("memory_recall") if r.get("memory_recall") is not None else 0)
+
     fig, axes = plt.subplots(2, 2, figsize=(10, 8))
     axes[0, 0].plot(xs, conf, "o-")
     axes[0, 0].set_title("Confirmed objects vs NBV step")
@@ -85,11 +117,16 @@ def main():
     axes[0, 1].set_title("Unique memory Recall vs NBV step")
     axes[0, 1].set_xlabel("step")
     axes[0, 1].set_ylabel("unique_recall")
-    if err_x:
+    if ts:
+        axes[1, 0].plot(ts, conf_t, "o-")
+        axes[1, 0].set_title("Confirmed objects vs wall time")
+        axes[1, 0].set_xlabel("elapsed_s")
+        axes[1, 0].set_ylabel("n_confirmed")
+    elif err_x:
         axes[1, 0].plot(err_x, err, "o-")
-    axes[1, 0].set_title("Camera EE arrival error vs step")
-    axes[1, 0].set_xlabel("step")
-    axes[1, 0].set_ylabel("ee_err_m")
+        axes[1, 0].set_title("Camera EE arrival error vs step")
+        axes[1, 0].set_xlabel("step")
+        axes[1, 0].set_ylabel("ee_err_m")
     axes[1, 1].axis("off")
     axes[1, 1].text(
         0.05,
@@ -101,6 +138,14 @@ def main():
     )
     fig.tight_layout()
     fig.savefig(str(run_dir / "curves.png"), dpi=120)
+    if ts:
+        fig2, ax2 = plt.subplots(1, 1, figsize=(6, 4))
+        ax2.plot(ts, recall_t, "o-")
+        ax2.set_title("Unique Recall vs wall time (online)")
+        ax2.set_xlabel("elapsed_s")
+        ax2.set_ylabel("unique_recall")
+        fig2.tight_layout()
+        fig2.savefig(str(run_dir / "curve_recall_vs_time.png"), dpi=120)
     print(json.dumps({k: summary[k] for k in ("n_steps_dirs", "n_confirmed", "terminated", "terminate_reason")}, indent=2))
     print("SUMMARY_OK", run_dir)
 

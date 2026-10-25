@@ -30,36 +30,52 @@ def matrix_to_pose(T):
     return p, q
 
 
-def load_fkie_goal(path, require_orientation=True):
+def load_fkie_goal(path, require_orientation=True, goal_index=0):
     data = json.loads(Path(path).read_text())
+    # Never convert FKIE base relocation into an EE/camera optical goal.
+    if data.get("action_type") == "base_pose" or (
+        data.get("request_base_pose") and not (data.get("goals") or [])
+    ):
+        raise SystemExit(
+            "REFUSE_BASE_AS_EE: action_type=base_pose — use execute_base_pose_goal.py"
+        )
     # Accept structured save_fkie_action_result / probes — never invent RPY silently.
     if "goals" in data and data["goals"]:
-        g = data["goals"][0]
+        idx = int(goal_index)
+        if idx < 0 or idx >= len(data["goals"]):
+            # Prefer matching by stored index field
+            match = [g for g in data["goals"] if int(g.get("index", -1)) == idx]
+            if not match:
+                raise SystemExit("goal_index %d out of range (n=%d)" % (idx, len(data["goals"])))
+            g = match[0]
+        else:
+            # Prefer goals with matching .index when present
+            by_idx = [g for g in data["goals"] if int(g.get("index", -1)) == idx]
+            g = by_idx[0] if by_idx else data["goals"][idx]
         if "pose" in g:
             p = g["pose"]["position"]
             o = g["pose"]["orientation"]
             return (
                 [p["x"], p["y"], p["z"]],
                 [o["x"], o["y"], o["z"], o["w"]],
-                "goals[0].pose",
+                "goals[%d].pose" % int(g.get("index", idx)),
             )
         if "xyz" in g:
             xyz = g["xyz"]
             rpy = g.get("rpy")
             if rpy:
-                return xyz, list(tft.quaternion_from_euler(*rpy)), "goals[0].xyz+rpy"
+                return xyz, list(tft.quaternion_from_euler(*rpy)), "goals[%d].xyz+rpy" % idx
             if require_orientation:
                 raise SystemExit(
-                    "FKIE goals[0] has xyz only — refusing default RPY; provide quat in Action result"
+                    "FKIE goals[%d] has xyz only — refusing default RPY" % idx
                 )
-            return xyz, None, "goals[0].xyz"
-    if "goal_pose_3d" in data and data["goal_pose_3d"]:
-        gp = data["goal_pose_3d"]
-        pose = gp.get("pose", gp)
-        p = pose["position"]
-        o = pose["orientation"]
-        return [p["x"], p["y"], p["z"]], [o["x"], o["y"], o["z"], o["w"]], "goal_pose_3d"
-    if "camera_goal_xyz" in data:
+            return xyz, None, "goals[%d].xyz" % idx
+    # Explicit camera fields only when not a base-only result
+    if data.get("action_type") == "camera_nbv" and "camera_goal_xyz" in data:
+        xyz = data["camera_goal_xyz"]
+        if "camera_goal_quat_xyzw" in data:
+            return xyz, data["camera_goal_quat_xyzw"], "camera_goal_*"
+    if "camera_goal_xyz" in data and data.get("nbv_source", "").startswith("goals"):
         xyz = data["camera_goal_xyz"]
         if "camera_goal_quat_xyzw" in data:
             return xyz, data["camera_goal_quat_xyzw"], "camera_goal_*"
@@ -70,7 +86,7 @@ def load_fkie_goal(path, require_orientation=True):
                 "FKIE JSON missing orientation — refusing silent default RPY=(0,0.35,0)"
             )
         return xyz, None, "camera_goal_xyz_only"
-    raise SystemExit("Unrecognized FKIE goal JSON: %s" % path)
+    raise SystemExit("Unrecognized FKIE camera-goal JSON: %s" % path)
 
 
 def main():
@@ -79,6 +95,12 @@ def main():
     ap.add_argument("--cam-rpy", nargs=3, type=float, default=None)
     ap.add_argument("--cam-quat", nargs=4, type=float, default=None, help="xyzw")
     ap.add_argument("--from-fkie-json", default="", help="Load camera goal from FKIE evidence JSON")
+    ap.add_argument(
+        "--goal-index",
+        type=int,
+        default=0,
+        help="Which goals[] entry to convert (camera_nbv only)",
+    )
     ap.add_argument(
         "--allow-missing-orientation",
         action="store_true",
@@ -104,7 +126,9 @@ def main():
     orientation_source = "default_rpy"
     if args.from_fkie_json:
         cam_xyz, cam_q, orientation_source = load_fkie_goal(
-            args.from_fkie_json, require_orientation=not args.allow_missing_orientation
+            args.from_fkie_json,
+            require_orientation=not args.allow_missing_orientation,
+            goal_index=args.goal_index,
         )
         if cam_q is None:
             if args.cam_quat is not None:
