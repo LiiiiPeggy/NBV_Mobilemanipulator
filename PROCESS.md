@@ -297,3 +297,11 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - **根因**：桌子与物体从不在 world 文件内，须经 `spawn_object_scene.py` 动态加载；Mode B 入口此前未接该步骤。seed42 布局在 `156f533` 已验收，不应重新生成。
 - **修复**：`LOAD_YCB_SCENE=1`（默认 0 保 B4）；`load_ycb_scene_into_gazebo.sh` 等 spawn 服务 → spawn seed42 → `verify_gazebo_object_scene.py` → visibility 诊断与截图；`spawn --only-missing` 支持热补；S5-B `ENSURE_YCB=1` 强制同 Gazebo。
 - **验证**：运行中 Mode B 上 `LOAD_YCB_SCENE_OK`；verify 13/13（桌+11 目标+遮挡）；D455 RGB 可见桌面物体；二次 only-missing 全 `SKIP_PRESENT`，AGX/REMANI 未重启。证据：`reports/mode_b_ycb_scene.md`、`reports/mode_b_ycb_shots/`。
+
+## 2026-10-25 C1–C4：自过滤地图 + FKIE 单步闭环
+
+- **C1 根因**：旧 feeder 用 `Time(0)` TF；无几何自过滤；`z_min=0.05` 把地面灌进 ESDF → 底盘球假碰撞。
+- **C1 修复**：stamp TF（失败跳帧）；`robot_self_filter` 连杆代理；`z_min≈0.15`；体素累积。`SELF_FILTER_C1_OK`。
+- **C2**：`environment_mode=simulated` + 过滤 global_cloud；起始 footprint 0 命中；table 区域有点。小增量 EE 曾因规划驶向桌面 FOV 中途 `BACKEND COLLISION`（真实图障碍，非关碰撞）。
+- **C3**：弃用日志正则/默认 RPY；`save_fkie_action_result.py` 保存完整 quat；`--align-remani-ee` 由多采样证实 Δz≈−base_z；禁止二次 `/ee_goal` 覆盖。
+- **C4**：FKIE goal 经 REMANI `EXEC_TRAJ`；相机到位误差≈2 mm；前后 RGB stamp/图像差分 → `PERCEPTION_DELTA_OK`。证据见 `reports/remani_*` / `fkie_remani_*`。

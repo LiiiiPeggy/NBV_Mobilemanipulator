@@ -8,7 +8,7 @@
   <arg name="map_size_y" default="40.0"/>
   <arg name="map_size_z" default="4.0"/>
   <arg name="target_type" default="1"/>
-  <!-- simulated: expects /map_generator/global_cloud; static_empty: B4 motion proof without warehouse ESDF -->
+  <!-- simulated: /map_generator/global_cloud via filtered feeder; static_empty: B4 motion-pipeline isolation ONLY -->
   <arg name="environment_mode" default="static_empty"/>
   <arg name="mm_param_file" default="$(find remani_planner)/config/mm_param_ranger_cr10.yaml"/>
   <arg name="exp_param_file" default="$(find remani_planner)/config/exp_ranger_cr10_param.yaml"/>
@@ -23,8 +23,11 @@
   <param name="search/min_turning_radius" value="0.5"/>
   <param name="search/max_seach_time" value="5.0"/>
   <param name="environment_mode" value="$(arg environment_mode)"/>
+  <!-- static_empty: no online map. simulated: load filtered global cloud once into GridMap. -->
   <param name="grid_map/use_load_map" value="false" if="$(eval arg('environment_mode') == 'static_empty')"/>
   <param name="grid_map/use_load_map" value="true" unless="$(eval arg('environment_mode') == 'static_empty')"/>
+  <param name="grid_map/use_global_map" value="false" if="$(eval arg('environment_mode') == 'static_empty')"/>
+  <param name="grid_map/use_global_map" value="true" unless="$(eval arg('environment_mode') == 'static_empty')"/>
   <!-- Keep mm_controller init joints aligned with Mode B observe hold pose.
        Loaded again after include so it overrides exp_ranger_cr10_param.yaml. -->
   <arg name="init_state_yaml" default="/workspace/configs/fkie/agx_adapt/config/remani_init_aisle_observe.yaml"/>

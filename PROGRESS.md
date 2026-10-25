@@ -7,29 +7,29 @@
 
 **目标**：AGX + FKIE/SSMI；YCB 多对象基准；REMANI Mode B 闭环。
 
-**当前阶段**：Warehouse Mode B **B1–B4 已通过**；**Mode B + seed42 YCB 场景加载已验收**（桌+11 目标+遮挡，D455 可见）。S5-A 工具就绪；S5-B 脚本已强制同场景（ENSURE_YCB），完整 Action→执行→感知差分尚未跑完。
+**当前阶段**：C1 自过滤 + C2 simulated 地图验收已通过；C3/C4 完成一次 FKIE Action→REMANI EXEC_TRAJ→新 RGB-D（`ONE_STEP_OK` / `PERCEPTION_DELTA_OK`）。B4 `static_empty` 仍为运动管线隔离测试。
 
 ## 已完成（有验证证据）
 
 | 项 | 验证状态 | 证据 |
 |----|----------|------|
-| Mode B 动态稳定 + 关节可控 | 已验证 | `reports/agx_mode_b_physics.md`, `stability_b1.json` |
-| REMANI←Gazebo 状态对齐 | 已验证 | `reports/remani_agx_state_alignment.md` |
-| Warehouse 点云地图（部分） | 部分 | `reports/remani_warehouse_map.md` |
-| 单 EE 目标规划+执行+相机动 | 已验证 | `reports/remani_single_goal_execution.md` → `SINGLE_EE_EXEC_OK` |
-| S5-A FKIE JSON→EE（含 align） | 工具已验证 | `nbv_to_remani_ee_goal.py --from-fkie-json --align-remani-ee` |
-| Mode B 加载 seed42 YCB（不重生布局） | 已验证 | `LOAD_YCB_SCENE_OK`；`reports/mode_b_ycb_scene.md`；`reports/mode_b_ycb_shots/`；verify 13/13 |
+| Mode B B1–B4 | 已验证 | `reports/agx_mode_b_physics.md` 等 |
+| Mode B + seed42 YCB | 已验证 | `reports/mode_b_ycb_scene.md` |
+| C1 自身点云过滤+stamp TF | 已验证 | `reports/remani_self_filter_validation.md` |
+| C2 simulated 地图（起始无误自碰） | 已验证 | `reports/remani_simulated_map_validation.md` |
+| C3 FKIE 完整目标传递 | 已验证 | `reports/fkie_goal_semantics_validation.md` |
+| C4 单步 NBV 新观测 | 已验证 | `reports/fkie_remani_one_step_execution.md`, `fkie_remani_perception_delta.md` |
 
 ## 阻塞 / 未完成
 
 | 项 | 说明 |
 |----|------|
-| B3 机体点云滤除 | 深度灌入易 BACKEND COLLISION；B4 暂用 `static_empty` |
-| S5-B 端到端 FKIE Action 闭环 | `run_fkie_remani_one_step.sh` 已 ENSURE_YCB + 场景一致性检查；待在带 YCB 的 Mode B 上跑通并记感知差分 |
-| REMANI FK vs Link6 Z≈0.42 m | 已用 `--align-remani-ee` 适配；长期应修正 mount 高度参数 |
+| 完整轮式动力学 | Mode B 仍为运动学桥 |
+| 深度地图非全图先验 | 仅 D455 FOV 累积；货架区可能未入图 |
+| Octomap 快照话题 | `/octomap_binary` 本轮超时未取到 |
 
 ## 下一步
 
-1. 在已加载 YCB 的 Mode B 上跑 `run_fkie_remani_one_step.sh` + 运动前后 GSAM/memory 差分（勿重启 Gazebo）。  
-2. 过滤 `/map_generator/global_cloud` 中机器人邻域，用 `environment_mode=simulated` 重做碰撞验收。  
-3. Mode A 回归（`AGX_MODE=static` aisle_safe NBV）抽检。  
+1. 增强局部自由空间/射线融合，减少中途规划撞桌误路径。  
+2. 在稳定 simulated 地图上重复多步 NBV + GSAM 记忆更新。  
+3. Mode A 回归抽检。

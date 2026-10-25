@@ -30,31 +30,46 @@ def matrix_to_pose(T):
     return p, q
 
 
-def load_fkie_goal(path):
+def load_fkie_goal(path, require_orientation=True):
     data = json.loads(Path(path).read_text())
-    # Accept several evidence JSON shapes from verify_fkie_action / probes.
+    # Accept structured save_fkie_action_result / probes — never invent RPY silently.
     if "goals" in data and data["goals"]:
         g = data["goals"][0]
         if "pose" in g:
             p = g["pose"]["position"]
             o = g["pose"]["orientation"]
-            return [p["x"], p["y"], p["z"]], [o["x"], o["y"], o["z"], o["w"]], "goals[0].pose"
+            return (
+                [p["x"], p["y"], p["z"]],
+                [o["x"], o["y"], o["z"], o["w"]],
+                "goals[0].pose",
+            )
         if "xyz" in g:
             xyz = g["xyz"]
             rpy = g.get("rpy")
             if rpy:
                 return xyz, list(tft.quaternion_from_euler(*rpy)), "goals[0].xyz+rpy"
+            if require_orientation:
+                raise SystemExit(
+                    "FKIE goals[0] has xyz only — refusing default RPY; provide quat in Action result"
+                )
             return xyz, None, "goals[0].xyz"
-    if "goal_pose_3d" in data:
-        p = data["goal_pose_3d"]["position"]
-        o = data["goal_pose_3d"]["orientation"]
+    if "goal_pose_3d" in data and data["goal_pose_3d"]:
+        gp = data["goal_pose_3d"]
+        pose = gp.get("pose", gp)
+        p = pose["position"]
+        o = pose["orientation"]
         return [p["x"], p["y"], p["z"]], [o["x"], o["y"], o["z"], o["w"]], "goal_pose_3d"
     if "camera_goal_xyz" in data:
         xyz = data["camera_goal_xyz"]
         if "camera_goal_quat_xyzw" in data:
             return xyz, data["camera_goal_quat_xyzw"], "camera_goal_*"
-        rpy = data.get("camera_goal_rpy", [0, 0.35, 0])
-        return xyz, list(tft.quaternion_from_euler(*rpy)), "camera_goal_xyz+rpy"
+        if "camera_goal_rpy" in data:
+            return xyz, list(tft.quaternion_from_euler(*data["camera_goal_rpy"])), "camera_goal_xyz+rpy"
+        if require_orientation:
+            raise SystemExit(
+                "FKIE JSON missing orientation — refusing silent default RPY=(0,0.35,0)"
+            )
+        return xyz, None, "camera_goal_xyz_only"
     raise SystemExit("Unrecognized FKIE goal JSON: %s" % path)
 
 
@@ -64,13 +79,18 @@ def main():
     ap.add_argument("--cam-rpy", nargs=3, type=float, default=None)
     ap.add_argument("--cam-quat", nargs=4, type=float, default=None, help="xyzw")
     ap.add_argument("--from-fkie-json", default="", help="Load camera goal from FKIE evidence JSON")
+    ap.add_argument(
+        "--allow-missing-orientation",
+        action="store_true",
+        help="Permit FKIE JSON without quat (requires --cam-rpy/--cam-quat). Default: refuse.",
+    )
     ap.add_argument("--camera-frame", default="d455_depth_optical_frame")
     ap.add_argument("--ee-frame", default="cr10_Link6")
     ap.add_argument("--world-frame", default="world")
     ap.add_argument(
         "--align-remani-ee",
         action="store_true",
-        help="Subtract (TF_ee - /ee_current_pose) so goal matches REMANI FK frame",
+        help="Apply measured (/ee_current_pose - TF ee) offset so goal matches REMANI FK frame",
     )
     ap.add_argument("--publish", action="store_true")
     ap.add_argument("--out", default="data/metrics/nbv_remani/ee_goal.json")
@@ -83,12 +103,18 @@ def main():
 
     orientation_source = "default_rpy"
     if args.from_fkie_json:
-        cam_xyz, cam_q, orientation_source = load_fkie_goal(args.from_fkie_json)
+        cam_xyz, cam_q, orientation_source = load_fkie_goal(
+            args.from_fkie_json, require_orientation=not args.allow_missing_orientation
+        )
         if cam_q is None:
-            if args.cam_rpy is None:
-                raise SystemExit("FKIE JSON has position only; pass --cam-rpy or --cam-quat (adaptation)")
-            cam_q = list(tft.quaternion_from_euler(*args.cam_rpy))
-            orientation_source = "fkie_xyz+cli_rpy_adaptation"
+            if args.cam_quat is not None:
+                cam_q = list(args.cam_quat)
+                orientation_source = "fkie_xyz+cli_quat_adaptation"
+            elif args.cam_rpy is not None:
+                cam_q = list(tft.quaternion_from_euler(*args.cam_rpy))
+                orientation_source = "fkie_xyz+cli_rpy_adaptation"
+            else:
+                raise SystemExit("FKIE JSON has position only; pass --cam-rpy or --cam-quat")
     else:
         if args.cam_xyz is None:
             raise SystemExit("Need --cam-xyz or --from-fkie-json")
@@ -96,10 +122,11 @@ def main():
         if args.cam_quat is not None:
             cam_q = list(args.cam_quat)
             orientation_source = "cli_quat"
+        elif args.cam_rpy is not None:
+            cam_q = list(tft.quaternion_from_euler(*args.cam_rpy))
+            orientation_source = "cli_rpy"
         else:
-            rpy = args.cam_rpy if args.cam_rpy is not None else [0.0, 0.35, 0.0]
-            cam_q = list(tft.quaternion_from_euler(*rpy))
-            orientation_source = "cli_rpy" if args.cam_rpy is not None else "default_rpy_0_0.35_0"
+            raise SystemExit("Non-FKIE mode requires --cam-quat or --cam-rpy (no silent default)")
 
     T_w_c_goal = pose_to_matrix(cam_xyz, cam_q)
 
