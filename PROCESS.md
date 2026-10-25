@@ -290,3 +290,10 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - **根因 4**：REMANI `/ee_current_pose` 相对 TF Link6 低约 0.42 m（忽略底盘高度）。EE 目标须 `--align-remani-ee`。
 - **根因 5**：深度点云作 `/map_generator/global_cloud` 时 start 态 BACKEND COLLISION。B4 用 `static_empty`；地图滤机体待做。
 - 证据：`SINGLE_EE_EXEC_OK`；FSM `EXEC_TRAJ`；相机光学 TF Δ≈7.6 cm。报告：`reports/agx_mode_b_physics.md` 等。
+
+## 2026-10-25 Mode B 缺桌/YCB：加载路径补齐
+
+- **现象**：`start_agx_warehouse_mode_b.sh` 只起动态 AGX + warehouse world → GUI 仅货架/货箱，无桌子与 11 个 YCB。
+- **根因**：桌子与物体从不在 world 文件内，须经 `spawn_object_scene.py` 动态加载；Mode B 入口此前未接该步骤。seed42 布局在 `156f533` 已验收，不应重新生成。
+- **修复**：`LOAD_YCB_SCENE=1`（默认 0 保 B4）；`load_ycb_scene_into_gazebo.sh` 等 spawn 服务 → spawn seed42 → `verify_gazebo_object_scene.py` → visibility 诊断与截图；`spawn --only-missing` 支持热补；S5-B `ENSURE_YCB=1` 强制同 Gazebo。
+- **验证**：运行中 Mode B 上 `LOAD_YCB_SCENE_OK`；verify 13/13（桌+11 目标+遮挡）；D455 RGB 可见桌面物体；二次 only-missing 全 `SKIP_PRESENT`，AGX/REMANI 未重启。证据：`reports/mode_b_ycb_scene.md`、`reports/mode_b_ycb_shots/`。

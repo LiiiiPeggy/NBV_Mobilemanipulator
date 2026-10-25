@@ -103,14 +103,39 @@ def world_model_names(get_world):
         return set()
 
 
-def spawn_one(spawn_srv, delete_srv, name, xml, pose_dict, get_state, idempotent=True):
-    """Idempotent spawn: if same-name exists, delete then respawn (layout-owned names only)."""
+def spawn_one(
+    spawn_srv,
+    delete_srv,
+    name,
+    xml,
+    pose_dict,
+    get_state,
+    idempotent=True,
+    only_missing=False,
+    tol_xy=0.15,
+    tol_z=0.25,
+):
+    """Spawn layout-owned model. Never deletes models outside this layout name.
+
+    only_missing: if present and pose within tol, skip; if present but drifted, replace;
+                  if absent, spawn. Does not touch unrelated world models.
+    """
     existed = False
     try:
         st = get_state(name, "world")
         if st.success:
             existed = True
-            if idempotent:
+            if only_missing:
+                p = st.pose.position
+                if (
+                    abs(p.x - pose_dict["x"]) <= tol_xy
+                    and abs(p.y - pose_dict["y"]) <= tol_xy
+                    and abs(p.z - pose_dict["z"]) <= tol_z
+                ):
+                    return True, "already_present_pose_ok", True
+                delete_srv(name)
+                rospy.sleep(0.25)
+            elif idempotent:
                 delete_srv(name)
                 rospy.sleep(0.25)
             else:
@@ -147,6 +172,11 @@ def main():
         help="Debug only: do not exit non-zero if some objects fail",
     )
     ap.add_argument("--skip-asset-check", action="store_true")
+    ap.add_argument(
+        "--only-missing",
+        action="store_true",
+        help="Fill missing/drifted layout models only; do not delete unrelated world models",
+    )
     ap.add_argument("--out-json", default="")
     args = ap.parse_args()
 
@@ -204,12 +234,30 @@ def main():
                     print("FAIL_ASSET", name, issues)
                     results.append(entry)
                     continue
-            ok, msg, _ = spawn_one(spawn_srv, delete_srv, name, xml, item["spawn"], get_state)
+            ok, msg, existed = spawn_one(
+                spawn_srv,
+                delete_srv,
+                name,
+                xml,
+                item["spawn"],
+                get_state,
+                only_missing=bool(args.only_missing),
+            )
             entry["msg"] = msg
+            entry["existed_before"] = bool(existed)
             entry["ok"] = bool(ok)
             if not ok:
                 n_fail += 1
                 print("spawn", name, False, msg)
+                results.append(entry)
+                continue
+            if msg == "already_present_pose_ok":
+                pose_ok, delta, actual = post_check(get_state, name, item["spawn"])
+                entry["exists_after"] = True
+                entry["pose_ok"] = bool(pose_ok)
+                entry["actual_pose"] = actual
+                entry["pose_delta"] = delta
+                print("spawn", name, "SKIP_PRESENT", actual)
                 results.append(entry)
                 continue
             rospy.sleep(0.15)

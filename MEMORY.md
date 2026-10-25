@@ -95,8 +95,9 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 - **D455 传感器**：Gazebo depth 沿传感器 **+X** 看。`<pose>` 不得再用 optical 的 `(-π/2,0,-π/2)`（会相对 TF optical **+Z** 偏 90°）。正确：`d455_link` 上 `<pose>0 0 0 0 0 0</pose>` + `frameName=d455_depth_optical_frame`（link +X = optical +Z）。证据：`reports/d455_pointcloud_tf_debug.md`。
 - 定位默认 `--world-tf-mode tf`；`T_world_cam_calib.json` 仅历史调试，禁止再当权威外参。
 - Mode B（2026-10-24 验收 B1–B4）：`AGX_MODE=dynamic` → 独立 URDF `rangercr10lidar_gazebo_dynamic.urdf`（js+p3d，无 static）；**禁用** Mode A 假 JS/静态 TF；`agx_mode_b_p3d_tf.py` + 运动学 `joint_bridge`/`car_cmd_bridge`（对齐 REMANI fake_mm，非轮式动力学）。入口 `scripts/start_agx_warehouse_mode_b.sh`。`gazebo_ros_control` 曾致 NaN，勿默认启用。
+- Mode B + YCB（2026-10-25）：`LOAD_YCB_SCENE=1` 在 `/gazebo/spawn_sdf_model` 就绪后调用 `scripts/load_ycb_scene_into_gazebo.sh`；**默认布局** `data/scenes/indoor_objects/ycb/layouts/seed42.json`（已验收，**禁止启动时 regenerate/覆盖**）；`ONLY_MISSING=1` / `spawn_object_scene.py --only-missing` 可在已跑 Mode B 上补缺失，不删非本布局模型、不重启 AGX/REMANI/Gazebo。`LOAD_YCB_SCENE=0`（默认）保留纯运动 / B4 回归。验收：`verify_gazebo_object_scene.py` fail-closed + `diagnose_ycb_gazebo_visibility.py`；证据 `reports/mode_b_ycb_scene.md`、`reports/mode_b_ycb_shots/`。S5-B：`run_fkie_remani_one_step.sh` 默认 `ENSURE_YCB=1`，要求同世界含 `agx_ranger_cr10`+`mo_table_01`+≥8 `mo_obj_*`。
 - REMANI warehouse：`configs/fkie/agx_adapt/launch/remani_agx_warehouse.launch`（无 fake_mm）；`remani_init_aisle_observe.yaml` 覆盖 `fsm/init_state`；EE 目标须对齐 `/ee_current_pose`（相对 TF Link6 约 **-0.42 m Z**）；B4 运动证明用 `environment_mode=static_empty`；地图 `/map_generator/global_cloud`（`warehouse_cloud_to_remani.py`）仍需滤除机体点云。
-- 启动：`scripts/fkie_agx_warehouse_nbv.sh`；停仿：`scripts/fkie_stop_sim.sh`。
+- 启动：`scripts/fkie_agx_warehouse_nbv.sh`；停仿：`scripts/fkie_stop_sim.sh`。带物体：`LOAD_YCB_SCENE=1 bash scripts/start_agx_warehouse_mode_b.sh`；仅补物体：`ONLY_MISSING=1 bash scripts/load_ycb_scene_into_gazebo.sh`。
 - RViz：单窗口 `agx_nbv.rviz`（`DepthCloud_optical_frame` vs `Octomap_world_fused` 分开展示）。
 - Octomap：`configs/fkie/agx_adapt/launch/octomap_agx.launch`（max_range=5，filter_ground=false）。
 - 仓库 NBV：**正确光学** + aisle_safe 臂姿/ROI 后已恢复非空：`goals=1`，GOAL≈(-3.020,-5.294,1.609)；证据 `reports/fkie_corrected_optical_nbv.md`。禁止回退 90° 传感器 pose。
@@ -116,7 +117,7 @@ X11：`/tmp/.X11-unix` + `XAUTH_FILE=/tmp/.docker.xauth.nbv`（`scripts/setup_x1
 | 项 | 内容 |
 |----|------|
 | 对象资产 | `scripts/fetch_object_models.sh` → `third_party/gazebo_objects/gazebo_ycb`（gitignore）；本地 `configs/fkie/agx_adapt/models/{simple_table,traffic_cone,cardboard_occluder}` |
-| 布局/真值 | YCB 桌+地面：`(-3.90,-7.50)`；`ycb_model_contact_z.py` 按 collision 底面算 Spawn Z；`validate_object_layout.py` fail-closed；一键 `start_fkie_agx_ycb_demo.sh` + `arm_observe_aisle_table`；`FORCE_RESTART=1` 先停 gz 再重烤 |
+| 布局/真值 | YCB 桌+地面：`(-3.90,-7.50)`；权威布局 **`ycb/layouts/seed42.json`（勿无条件 regenerate）**；`ycb_model_contact_z.py` 按 collision 底面算 Spawn Z；`validate_object_layout.py` fail-closed；Mode A 一键 `start_fkie_agx_ycb_demo.sh`；Mode B：`LOAD_YCB_SCENE=1` / `load_ycb_scene_into_gazebo.sh` |
 | 感知 | `perceive_rgbd_objects.py` / offline `perceive_saved_rgbd_gsam.py`；失败分析 `analyze_gsam_failures.py` |
 | Grounded-SAM | NBV vendor + checkpoints；`.conda_envs/nbv_perception`；禁止 DovSG 运行时依赖 |
 | 对象记忆 | `perception/object_memory.py`（扩展字段 + confirm）；多视角 `run_multiview_ycb_capture.sh`（`AGX_ARM_POSE` bake） |

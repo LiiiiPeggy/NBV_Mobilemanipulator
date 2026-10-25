@@ -119,7 +119,7 @@
         "yaw": 0.2
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -134,7 +134,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_00",
@@ -150,7 +151,7 @@
         "yaw": -0.04063047601384076
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -165,7 +166,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_01",
@@ -181,7 +183,7 @@
         "yaw": 0.2061245062938613
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -196,7 +198,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_02",
@@ -212,7 +215,7 @@
         "yaw": -0.20804801790383415
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -227,7 +230,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_03",
@@ -243,7 +247,7 @@
         "yaw": 0.3369300320792934
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -258,7 +262,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_04",
@@ -274,7 +279,7 @@
         "yaw": -0.30773856018464973
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -289,7 +294,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_05",
@@ -305,7 +311,7 @@
         "yaw": 0.12634941290065238
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -320,7 +326,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_06",
@@ -336,7 +343,7 @@
         "yaw": -0.16410206195153715
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -351,7 +358,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_07",
@@ -367,7 +375,7 @@
         "yaw": 0.2043450442923097
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -382,7 +390,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_08",
@@ -398,7 +407,7 @@
         "yaw": 0.142229537202816
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -413,7 +422,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_09",
@@ -429,7 +439,7 @@
         "yaw": -0.3871360200505557
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -444,7 +454,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_obj_10",
@@ -460,7 +471,7 @@
         "yaw": -0.03077114097433401
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -475,7 +486,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     },
     {
       "gazebo_name": "mo_occluder_01",
@@ -491,7 +503,7 @@
         "yaw": 0.4
       },
       "ok": true,
-      "msg": "SpawnModel: Successfully spawned entity",
+      "msg": "already_present_pose_ok",
       "asset_issues": [],
       "exists_after": true,
       "pose_ok": true,
@@ -506,7 +518,8 @@
         "dz": 0.0,
         "tol_xy": 0.15,
         "tol_z": 0.25
-      }
+      },
+      "existed_before": true
     }
   ]
 }
