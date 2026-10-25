@@ -323,3 +323,12 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - **E2 根因 C**：IK 通过后 `max_time_scale=2` 拒绝对动力学放大（需 scale≈46）；随后 `BACKEND COLLISION` 擦桌（净空≈0.26 vs safe≈0.25）。Mode B：`max_time_scale=64`、`inflation=0.05`、`safe_margin=0.05`（不关碰撞）。
 - **E2/E3 验收**：`static_empty` 隔离与 `simulated` 均 `SINGLE_EE_EXEC_OK` + `EXEC_TRAJ` + `/nbv/trajectory/ee_planned` 非空。证据：`reports/octomap_*`、`fkie_remani_shared_mapping.md`、`remani_simulated_collision_diagnosis.md`。
 - **未决**：FKIE Action 本轮 `goals=[]`；E4/E5 在线 GSAM 多步未跑。
+
+## 2026-10-25 F1–F4：空目标诊断 + 同帧 GSAM + 在线对象闭环
+
+- **F1 根因**：`goals=[]` 常伴随 `request_base_pose=true` + 有效 `goal_pose_3d`（代码：无 best_branch 时回退 best frontier）。另有低高度 frontier（z≈0.62）转 EE 后贴地 → IK 失败；不可一律当算法崩溃，也不可发明 EE。
+- **F1 修复**：`save_fkie_action_result.py` 分类 A–H；高度可行性 [0.85,1.75]；`arm_height_min=0.95`；`restart_fkie_nbv_planner.sh` 强制 `octomap:=octomap_full`。
+- **F2 根因**：感知脚本 live 重订阅导致与存盘 RGB 不同帧。
+- **F2 修复**：`capture_synchronized_rgbd_snapshot.py` + `perceive_snapshot_gsam.py`（conda，只读快照）；失败显式 status。
+- **F3**：`run_fkie_online_gsam_step.py` + ObjectMemory + GT eval。证据：`fkie_feasible_base` `SINGLE_EE_EXEC_OK`（ee≈1.4 cm）；初始观测 frame recall≈0.27 / confirmed TP=2。
+- **F4**：`run_fkie_remani_exploration.sh`；假 complete 仅 1 次 settle-retry；空目标/执行失败合法终止。未决：连续多步全部到位与 yaw-only 视场质量。

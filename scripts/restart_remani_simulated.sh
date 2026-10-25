@@ -72,7 +72,10 @@ while (rospy.Time.now() - t0).to_sec() < 90.0 and not rospy.is_shutdown():
             s.get("last_accum_purged"),
         )
         last_ok = fok
-    if s.get("ready") and int(s.get("accum_n") or 0) >= 500 and fok >= 2:
+    # Voxel scenes can plateau below 500; ready flag uses same threshold in feeder.
+    if (s.get("ready") and int(s.get("accum_n") or 0) >= 500 and fok >= 2) or (
+        int(s.get("accum_n") or 0) >= 250 and fok >= 5
+    ):
         break
 else:
     raise SystemExit("feeder not ready")

@@ -6,7 +6,9 @@ min_gain_frontier: -10000.0
 free_space_frontier: true
 
 planner_boundary_id: 0
-arm_height_min: 0.35
+# Keep camera samples in Mode-B reachable band (yaw-only FKIE poses → EE IK).
+# 0.35 produced floor-level frontiers (z≈0.62 → EE z≈0.16, IK fail).
+arm_height_min: 0.95
 arm_height_max: 1.65
 self_collision_height: 2.2
 arm_goal_range: 1.4

@@ -1,22 +1,33 @@
 #!/usr/bin/env python3
-"""Formal FKIE NbvPlanner Action client — saves structured JSON (no regex from logs).
+"""Formal FKIE NbvPlanner Action client — structured JSON + empty-goal diagnosis.
 
-Fails closed on timeout, non-SUCCEEDED, empty goals[], or missing pose fields.
+Valid NBV sources (fail-closed if none):
+  A) result.goals[] non-empty (arm branch)
+  B) request_base_pose && goal_pose_3d is a non-trivial camera pose
+Never invent a substitute EE target. Classify goals=[] honestly.
 """
 from __future__ import print_function
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
 import actionlib
 import rospy
-from geometry_msgs.msg import Point32, Polygon, PolygonStamped
+import tf2_ros
+from geometry_msgs.msg import Point32, PolygonStamped
 from std_msgs.msg import Header
+from visualization_msgs.msg import MarkerArray
 
 from fkie_measurement_msgs.msg import BoundaryPolygon, MeasurementEstimation
 from fkie_nbv_planner.msg import NbvPlannerAction, NbvPlannerGoal
+
+try:
+    from octomap_msgs.msg import Octomap
+except Exception:
+    Octomap = None
 
 
 def pose_stamped_to_dict(ps):
@@ -43,6 +54,100 @@ def pose_stamped_to_dict(ps):
     }
 
 
+def pose_norm(pose_dict):
+    if not pose_dict or not pose_dict.get("pose"):
+        return 0.0
+    p = pose_dict["pose"]["position"]
+    o = pose_dict["pose"]["orientation"]
+    return math.sqrt(p["x"] ** 2 + p["y"] ** 2 + p["z"] ** 2) + abs(o["w"]) + abs(o["x"]) + abs(o["y"]) + abs(o["z"])
+
+
+def optical_nbv_feasible(pose_dict, z_min=0.85, z_max=1.75):
+    """FKIE samples yaw-only poses; reject floor/sky heights that break Mode B EE IK."""
+    if not pose_dict or not pose_dict.get("pose"):
+        return False, "missing_pose"
+    z = float(pose_dict["pose"]["position"]["z"])
+    if z < z_min or z > z_max:
+        return False, "camera_z=%.3f outside [%.2f,%.2f]" % (z, z_min, z_max)
+    return True, "ok"
+
+
+def marker_stats(topic, timeout=1.5):
+    try:
+        ma = rospy.wait_for_message(topic, MarkerArray, timeout=timeout)
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    n_pts = sum(len(m.points or []) for m in ma.markers)
+    n_pose = sum(1 for m in ma.markers if abs(m.pose.position.x) + abs(m.pose.position.y) > 1e-6)
+    return {
+        "ok": True,
+        "n_markers": len(ma.markers),
+        "n_points": n_pts,
+        "n_posed": n_pose,
+        "stamp": ma.markers[0].header.stamp.to_sec() if ma.markers else None,
+    }
+
+
+def lookup_xyz(buf, parent, child):
+    t = buf.lookup_transform(parent, child, rospy.Time(0), rospy.Duration(2.0))
+    p = t.transform.translation
+    q = t.transform.rotation
+    return {
+        "xyz": [float(p.x), float(p.y), float(p.z)],
+        "quat_xyzw": [float(q.x), float(q.y), float(q.z), float(q.w)],
+        "stamp": t.header.stamp.to_sec() if t.header.stamp else None,
+    }
+
+
+def classify_empty(result_dict, ctx):
+    """Return (code, reason) for goals=[] cases. See task F1 §3.2."""
+    n_goals = int(result_dict.get("n_goals") or 0)
+    if n_goals > 0:
+        return "HAS_GOALS", "goals[] non-empty"
+    complete = bool(result_dict.get("complete_exploration"))
+    req_base = bool(result_dict.get("request_base_pose"))
+    gp = result_dict.get("goal_pose_3d")
+    gp_ok = pose_norm(gp) > 0.05
+    fr = ctx.get("frontiers") or {}
+    cached = ctx.get("cached_nodes") or {}
+    rrt = ctx.get("rrt") or {}
+    best = ctx.get("best_branch") or {}
+
+    if req_base and gp_ok:
+        feas, why = optical_nbv_feasible(gp)
+        if feas:
+            return (
+                "G_BASE_POSE",
+                "goals[] empty but request_base_pose with height-feasible goal_pose_3d "
+                "(FKIE wants base+camera move to frontier)",
+            )
+        return (
+            "D_FILTERED",
+            "request_base_pose goal_pose_3d present but not Mode-B EE-feasible (%s)" % why,
+        )
+    if complete and not gp_ok and not (fr.get("n_posed") or fr.get("n_markers")):
+        return "A_COMPLETE", "complete_exploration=true and no usable frontier/goal_pose_3d"
+    if complete and (cached.get("n_posed") or cached.get("n_markers")):
+        return (
+            "D_FILTERED",
+            "complete_exploration with cached nodes still present — likely "
+            "frontiers inside arm_goal_range and/or RRT branch gain-filtered",
+        )
+    if not (cached.get("n_posed") or cached.get("n_markers") or fr.get("n_posed")):
+        if (rrt.get("n_markers") or 0) > 0:
+            return "C_NO_BRANCH", "RRT markers exist but no frontiers/cached goals"
+        return "B_NO_FRONTIER", "no cached/frontier markers; unknown space may remain"
+    if (best.get("n_markers") or 0) == 0 and (rrt.get("n_markers") or 0) > 0:
+        return "C_NO_BRANCH", "RRT grew but best_branch empty after gain/arm filter"
+    if not ctx.get("camera_pose_ok"):
+        return "E_TF", "camera TF missing or stale at diagnosis time"
+    if not ctx.get("octomap_ok"):
+        return "E_MAP", "octomap unavailable at diagnosis time"
+    if req_base and not gp_ok:
+        return "H_ERROR", "request_base_pose set but goal_pose_3d trivial/invalid"
+    return "UNKNOWN_EMPTY", "goals=[] without a clearer diagnostic match"
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="data/metrics/fkie_agx_warehouse_mode_b/fkie_action_result.json")
@@ -51,13 +156,59 @@ def main():
     ap.add_argument(
         "--boundary-xy",
         default="[[-8.3603,-2.6852],[-1.80,-2.6852],[-1.80,-8.6852],[-8.3603,-8.6852]]",
-        help="JSON list of [x,y] polygon vertices",
+        help="JSON list of [x,y] polygon vertices (aisle_safe default)",
     )
-    ap.add_argument("--allow-empty", action="store_true", help="Do not fail if goals=[]")
+    ap.add_argument("--min-height", type=float, default=0.0)
+    ap.add_argument("--max-height", type=float, default=2.0)
+    ap.add_argument(
+        "--arm-in-prepacked",
+        type=int,
+        default=1,
+        help="FKIE Action field (kept for API completeness; planner may ignore)",
+    )
+    ap.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="Exit 0 even with no usable NBV (still write diagnosis)",
+    )
+    ap.add_argument("--accept-base-pose", action="store_true", default=True)
+    ap.add_argument("--no-accept-base-pose", action="store_true")
     args = ap.parse_args()
+    accept_base = bool(args.accept_base_pose) and not bool(args.no_accept_base_pose)
 
     rospy.init_node("save_fkie_action_result", anonymous=True)
     boundary_xy = json.loads(args.boundary_xy)
+
+    buf = tf2_ros.Buffer()
+    tf2_ros.TransformListener(buf)
+    rospy.sleep(0.3)
+
+    ctx = {
+        "camera_pose_ok": False,
+        "octomap_ok": False,
+        "frontiers": marker_stats("/robot/viz_curr_frontiers"),
+        "cached_nodes": marker_stats("/robot/viz_cached_nodes"),
+        "rrt": marker_stats("/robot/viz_rrt"),
+        "best_branch": marker_stats("/robot/viz_best_branch"),
+    }
+    try:
+        ctx["camera_tf"] = lookup_xyz(buf, "world", "d455_depth_optical_frame")
+        ctx["base_tf"] = lookup_xyz(buf, "world", "base_link")
+        ctx["camera_pose_ok"] = True
+    except Exception as e:
+        ctx["camera_tf_error"] = str(e)
+    if Octomap is not None:
+        try:
+            om = rospy.wait_for_message("/robot/octomap_full", Octomap, timeout=3.0)
+            ctx["octomap"] = {
+                "frame": om.header.frame_id,
+                "stamp": om.header.stamp.to_sec() if om.header.stamp else None,
+                "resolution": float(om.resolution),
+                "data_len": len(om.data) if om.data is not None else 0,
+            }
+            ctx["octomap_ok"] = True
+        except Exception as e:
+            ctx["octomap_error"] = str(e)
 
     client = actionlib.SimpleActionClient(args.action_server, NbvPlannerAction)
     rospy.loginfo("Waiting for %s", args.action_server)
@@ -66,7 +217,7 @@ def main():
 
     goal = NbvPlannerGoal()
     goal.header = Header(stamp=rospy.Time.now(), frame_id="world")
-    goal.arm_in_prepacked = True
+    goal.arm_in_prepacked = bool(args.arm_in_prepacked)
 
     poly = PolygonStamped()
     poly.header = goal.header
@@ -75,8 +226,8 @@ def main():
     boundary = BoundaryPolygon()
     boundary.id = 1
     boundary.source_type = "save_fkie_action_result"
-    boundary.min_height = 0.0
-    boundary.max_height = 2.0
+    boundary.min_height = float(args.min_height)
+    boundary.max_height = float(args.max_height)
     boundary.polygon = poly
     goal.current_boundary = boundary
 
@@ -112,6 +263,16 @@ def main():
         d["index"] = i
         goals.append(d)
 
+    # Refresh viz after planning
+    ctx["frontiers_after"] = marker_stats("/robot/viz_curr_frontiers")
+    ctx["cached_nodes_after"] = marker_stats("/robot/viz_cached_nodes")
+    ctx["rrt_after"] = marker_stats("/robot/viz_rrt")
+    ctx["best_branch_after"] = marker_stats("/robot/viz_best_branch")
+    ctx["frontiers"] = ctx["frontiers_after"]
+    ctx["cached_nodes"] = ctx["cached_nodes_after"]
+    ctx["rrt"] = ctx["rrt_after"]
+    ctx["best_branch"] = ctx["best_branch_after"]
+
     out = {
         "action_server": args.action_server,
         "action_state": state,
@@ -123,16 +284,48 @@ def main():
         "goals": goals,
         "n_goals": len(goals),
         "header_frame_id": goal.header.frame_id,
+        "boundary_xy": boundary_xy,
+        "boundary_height": [float(args.min_height), float(args.max_height)],
+        "arm_in_prepacked": bool(args.arm_in_prepacked),
         "wall_time": rospy.Time.now().to_sec(),
+        "diagnosis_context": ctx,
     }
 
-    # Convenience fields for nbv_to_remani_ee_goal.load_fkie_goal
+    code, reason = classify_empty(out, ctx)
+    out["empty_class"] = code
+    out["empty_reason"] = reason
+
     primary = None
+    source = None
+    feasibility = {"ok": False, "reason": "none"}
     if goals:
         primary = goals[0]
-    elif out["goal_pose_3d"] and out["goal_pose_3d"]["pose"]:
-        primary = out["goal_pose_3d"]
-    if primary:
+        source = "goals[0]"
+        feasibility = {"ok": True, "reason": "goals[0]"}
+        feas, why = optical_nbv_feasible(primary)
+        feasibility = {"ok": feas, "reason": why}
+        if not feas:
+            primary = None
+            source = None
+    elif accept_base and bool(result.request_base_pose) and pose_norm(out["goal_pose_3d"]) > 0.05:
+        feas, why = optical_nbv_feasible(out["goal_pose_3d"])
+        feasibility = {"ok": feas, "reason": why, "kind": "goal_pose_3d_request_base_pose"}
+        if feas:
+            primary = out["goal_pose_3d"]
+            source = "goal_pose_3d_request_base_pose"
+        else:
+            # Keep diagnosis; do not invent a substitute EE
+            out["empty_class"] = "D_FILTERED"
+            out["empty_reason"] = (
+                "request_base_pose goal_pose_3d not Mode-B EE-feasible (%s); refusing invent" % why
+            )
+    # Do NOT fall through to trivial zero goal_pose_3d
+
+    usable = primary is not None
+    out["feasibility"] = feasibility
+    out["usable_nbv"] = bool(usable)
+    out["nbv_source"] = source
+    if usable:
         p = primary["pose"]["position"]
         o = primary["pose"]["orientation"]
         out["camera_goal_xyz"] = [p["x"], p["y"], p["z"]]
@@ -142,16 +335,35 @@ def main():
 
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(out, indent=2))
-    print(json.dumps({k: out[k] for k in out if k != "goals"}, indent=2))
-    print("n_goals", out["n_goals"])
+    summary = {
+        k: out[k]
+        for k in (
+            "action_state_name",
+            "complete_exploration",
+            "request_base_pose",
+            "n_goals",
+            "usable_nbv",
+            "nbv_source",
+            "empty_class",
+            "empty_reason",
+            "camera_goal_xyz",
+            "camera_goal_quat_xyzw",
+        )
+        if k in out
+    }
+    print(json.dumps(summary, indent=2))
+    print("n_goals", out["n_goals"], "usable_nbv", out["usable_nbv"], "class", out["empty_class"])
 
     if state != 3:
         print("FKIE_ACTION_FAIL: state=%s" % state_name)
         raise SystemExit(4)
-    if out["n_goals"] == 0 and not args.allow_empty:
-        print("FKIE_ACTION_FAIL: goals=[] — refuse to invent a substitute target")
+    if not usable and not args.allow_empty:
+        print("FKIE_ACTION_FAIL: no usable NBV (%s) — refuse to invent a substitute" % code)
         raise SystemExit(5)
-    print("FKIE_ACTION_RESULT_OK")
+    if usable:
+        print("FKIE_ACTION_RESULT_OK")
+    else:
+        print("FKIE_ACTION_EMPTY_DIAGNOSED")
     return 0
 
 
