@@ -53,40 +53,50 @@ Visualization Manager:
       Image Topic: /realsense/rgb/image_raw
       Transport Hint: raw
     - Class: rviz/PointCloud2
-      Name: DepthCloud_optical_frame
+      Name: DepthCloud_current
       Enabled: true
       Topic: /realsense/depth/points2
       Size (m): 0.02
       Style: Points
       Color Transformer: AxisColor
       Queue Size: 5
-      # Live D455 depth (frame d455_depth_optical_frame) — not OctoMap
     - Class: octomap_rviz_plugin/ColorOccupancyGrid
-      Name: Octomap_world_fused
+      Name: Octomap_occupied_accumulated
       Enabled: true
       Octomap Topic: /robot/octomap_full
       Queue Size: 2
       Voxel Alpha: 0.75
-      # Fused occupancy — distinct from single-frame DepthCloud
     - Class: rviz/MarkerArray
-      Name: RRT
+      Name: Octomap_occupied_cells
       Enabled: true
+      Marker Topic: /robot/occupied_cells_vis_array
+    - Class: rviz/MarkerArray
+      Name: Octomap_free_accumulated
+      Enabled: false
+      Marker Topic: /robot/free_cells_vis_array
+    - Class: rviz/MarkerArray
+      Name: Octomap_point_cloud_centers
+      Enabled: false
+      Marker Topic: /robot/octomap_point_cloud_centers
+    - Class: rviz/MarkerArray
+      Name: Debug_RRT
+      Enabled: false
       Marker Topic: /robot/viz_rrt
     - Class: rviz/MarkerArray
-      Name: BestBranch
-      Enabled: true
+      Name: Debug_BestBranch
+      Enabled: false
       Marker Topic: /robot/viz_best_branch
     - Class: rviz/MarkerArray
-      Name: Frontiers
+      Name: Debug_Frontiers
       Enabled: true
       Marker Topic: /robot/viz_curr_frontiers
     - Class: rviz/MarkerArray
-      Name: CachedNodes
-      Enabled: true
+      Name: Debug_CachedNodes
+      Enabled: false
       Marker Topic: /robot/viz_cached_nodes
     - Class: rviz/Marker
-      Name: PlanningBBx
-      Enabled: true
+      Name: Debug_PlanningBBx
+      Enabled: false
       Marker Topic: /robot/viz_planning_bbx
     - Class: rviz/PoseArray
       Name: NBVGoals

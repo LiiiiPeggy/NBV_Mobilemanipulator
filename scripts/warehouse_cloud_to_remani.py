@@ -35,12 +35,18 @@ import tf.transformations as tft
 
 sys.path.insert(0, "/workspace/scripts")
 try:
-    from robot_self_filter import APPROX_NOTE, filter_points, lookup_link_transforms
+    from robot_self_filter import (
+        APPROX_NOTE,
+        filter_points,
+        lookup_link_transforms,
+        point_is_robot,
+    )
 except ImportError:
     from scripts.robot_self_filter import (  # type: ignore
         APPROX_NOTE,
         filter_points,
         lookup_link_transforms,
+        point_is_robot,
     )
 
 
@@ -100,6 +106,23 @@ class VoxelAccum(object):
                 # drop oldest
                 self._vox.popitem(last=False)
 
+    def purge_robot(self, link_T, inflate):
+        """Drop voxels that intersect the current robot hull (link_T at now).
+
+        Needed because VoxelAccum is permanent: a past self-return that escaped
+        per-frame filtering (or an arm pose no longer in FOV) would otherwise
+        stay forever and poison REMANI start-state collision checks.
+        """
+        kept = OrderedDict()
+        removed = 0
+        for k, p in self._vox.items():
+            if point_is_robot(p, link_T, inflate=inflate):
+                removed += 1
+            else:
+                kept[k] = p
+        self._vox = kept
+        return removed
+
     def points(self):
         return list(self._vox.values())
 
@@ -111,6 +134,8 @@ class Feeder(object):
     def __init__(self, args):
         self.skip = max(1, int(args.skip))
         self.inflate = float(args.self_inflate)
+        # Extra purge margin: REMANI safe_margin(0.1) + map inflate(0.08) ≈ 0.18
+        self.accum_purge_extra = float(getattr(args, "accum_purge_extra", 0.18))
         self.z_min = float(args.z_min)
         self.z_max = float(args.z_max)
         self.synthetic = bool(args.synthetic_shelves)
@@ -146,6 +171,7 @@ class Feeder(object):
             "last_raw": 0,
             "last_kept": 0,
             "last_removed": 0,
+            "last_accum_purged": 0,
             "accum_n": 0,
             "last_stamp": None,
             "last_skip_reason": None,
@@ -225,6 +251,11 @@ class Feeder(object):
 
         self.pub_raw.publish(make_cloud(raw, stamp, "world"))
         self.accum.add_many(kept)
+        # Re-purge whole accum vs CURRENT robot hull (margin covers REMANI
+        # car_safe_margin≈0.1 + obstacles_inflation≈0.08 + voxel half).
+        purge_inflate = self.inflate + self.accum_purge_extra
+        purged = self.accum.purge_robot(link_T, inflate=purge_inflate)
+        self.stats["last_accum_purged"] = int(purged)
         self._last_filt = list(self.accum.points())
         self.stats["accum_n"] = len(self.accum)
         self.stats["ready"] = self.stats["accum_n"] >= 500 and self.stats["frames_ok"] >= 2
@@ -235,7 +266,18 @@ class Feeder(object):
         self.pub_stats.publish(String(data=json.dumps(self.stats)))
 
     def _tick(self, _evt):
-        # Keep latch fresh for late GridMap subscribers
+        # Keep latch fresh for late GridMap subscribers; also re-purge vs now TF
+        # so a moving arm does not leave stale self voxels after FOV leaves.
+        if len(self.accum) == 0 and not self._last_filt:
+            return
+        try:
+            now = rospy.Time.now()
+            link_T = lookup_link_transforms(self.buf, now, world_frame="world", timeout=0.1)
+            purged = self.accum.purge_robot(link_T, inflate=self.inflate + self.accum_purge_extra)
+            self.stats["last_accum_purged"] = int(purged)
+            self._last_filt = list(self.accum.points())
+        except Exception:
+            pass
         if not self._last_filt:
             return
         cloud = make_cloud(self._last_filt, rospy.Time.now(), "world")
@@ -250,7 +292,14 @@ def main():
     ap.add_argument("--skip", type=int, default=6)
     ap.add_argument("--voxel", type=float, default=0.05)
     ap.add_argument("--max-voxels", type=int, default=250000)
-    ap.add_argument("--self-inflate", type=float, default=0.03)
+    # Per-frame filter inflate; accum purge adds --accum-purge-extra on top.
+    ap.add_argument("--self-inflate", type=float, default=0.06)
+    ap.add_argument(
+        "--accum-purge-extra",
+        type=float,
+        default=0.18,
+        help="Extra inflate when re-purging accum vs current robot (REMANI margin+map inflate)",
+    )
     # z-min must clear Ranger deck/ground ESDF false collisions (car spheres ~z=0.05–0.25).
     # 0.12 keeps table tops/legs and shelf faces; rejects floor returns.
     ap.add_argument("--z-min", type=float, default=0.12)

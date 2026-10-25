@@ -314,3 +314,12 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - **连带修复**：`fkie_stop_sim` 误 `pkill` Mode B launcher、把僵尸 gzserver 当活进程 → bringup 自杀/假失败。
 - **P1**：`visualize_remani_trajectory.py` + RViz Path；本轮 REMANI aisle `IK failed: collision` → planned 空，actual/base 有数据。
 - **P2**：到达门禁（位姿/速度/新鲜图）后系统 `cv_bridge` 存帧 + conda 离线 GSAM；`GSAM_ARRIVAL_OK`。证据：`reports/agx_mode_b_jitter_*`、`remani_trajectory_visualization.md`、`gsam_nbv_arrival_trigger.md`。
+
+## 2026-10-25 E0–E3：累计 OctoMap + REMANI simulated 轨迹
+
+- **E1**：`publish_free_space` 打开后 free Marker 有数据；点云保持 optical、由 octomap_server TF 取相机原点。同会话 yaw+25°：free +1944、occ +203、`octomap_full` +12.7 KB → 确认为累计融合而非每帧清空。
+- **E2 根因 A**：`remani_planner_param.yaml` `use_global_map:false` 覆盖 launch 根参数 → 订光学点云。修复：`advanced_param_sim_agx.xml` 节点内后置强制 true。
+- **E2 根因 B**：VoxelAccum 历史自回波（近身 0.3 m）→ IK `collision`。修复：按当前连杆 purge + 底盘代理对齐 1.1×0.9。
+- **E2 根因 C**：IK 通过后 `max_time_scale=2` 拒绝对动力学放大（需 scale≈46）；随后 `BACKEND COLLISION` 擦桌（净空≈0.26 vs safe≈0.25）。Mode B：`max_time_scale=64`、`inflation=0.05`、`safe_margin=0.05`（不关碰撞）。
+- **E2/E3 验收**：`static_empty` 隔离与 `simulated` 均 `SINGLE_EE_EXEC_OK` + `EXEC_TRAJ` + `/nbv/trajectory/ee_planned` 非空。证据：`reports/octomap_*`、`fkie_remani_shared_mapping.md`、`remani_simulated_collision_diagnosis.md`。
+- **未决**：FKIE Action 本轮 `goals=[]`；E4/E5 在线 GSAM 多步未跑。

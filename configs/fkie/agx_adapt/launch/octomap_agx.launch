@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<!-- AGX octomap: longer range than default FKIE 1.5m for warehouse shelves -->
+<!-- AGX octomap: longer range than default FKIE 1.5m for warehouse shelves.
+     cloud_in stays in d455_depth_optical_frame so octomap_server uses the
+     camera as ray origin via TF (do NOT pre-transform clouds to world). -->
 <launch>
   <arg name="robot_ns" default="robot"/>
   <node name="octomap_server" pkg="octomap_server" type="octomap_server_node" ns="$(arg robot_ns)" clear_params="true">
@@ -12,6 +14,9 @@
     <param name="filter_ground" type="bool" value="false"/>
     <param name="occupancy_min_z" value="0.05"/>
     <param name="occupancy_max_z" value="2.2"/>
+    <!-- Publish free + occupied MarkerArrays for RViz cumulative map views -->
+    <param name="publish_free_space" type="bool" value="true"/>
+    <param name="latch" type="bool" value="true"/>
     <remap from="cloud_in" to="/realsense/depth/points2"/>
   </node>
 </launch>

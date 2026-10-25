@@ -167,11 +167,11 @@ def main():
     state["plan_start_seen"] = False
     state["plan_finish_seen"] = False
     # Subscribe BEFORE publishing; also listen to FSM start/finish (traj msg can race).
-    from std_msgs.msg import Empty
+    from std_msgs.msg import Bool
 
     rospy.Subscriber("/planning/trajectory", PolynomialTraj, on_traj, queue_size=20)
-    rospy.Subscriber("/planning/start", Empty, on_plan_start, queue_size=10)
-    rospy.Subscriber("/planning/finish", Empty, on_plan_finish, queue_size=10)
+    rospy.Subscriber("/planning/start", Bool, on_plan_start, queue_size=10)
+    rospy.Subscriber("/planning/finish", Bool, on_plan_finish, queue_size=10)
     rospy.Subscriber("/mm_controller_node/car_cmd", Twist, on_car, queue_size=10)
     rospy.Subscriber(
         "/mm_controller_node/joint_cmd", JointTrajectoryControllerState, on_joint, queue_size=10

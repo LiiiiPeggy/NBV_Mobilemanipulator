@@ -26,9 +26,9 @@ APPROX_NOTE = (
 # kind=sphere: radius + origin_xyz
 # kind=capsule: radius, p0, p1 in link frame
 LINK_PROXIES = [
-    # Ranger chassis (base_link origin near deck; body above wheels)
-    ("base_link", "box", {"half": (0.52, 0.38, 0.22), "origin": (0.0, 0.0, 0.12)}),
-    ("box_link", "box", {"half": (0.35, 0.30, 0.25), "origin": (0.0, 0.0, 0.20)}),
+    # Ranger chassis — match REMANI mm_param_ranger_cr10 L=1.10 W=0.90
+    ("base_link", "box", {"half": (0.55, 0.45, 0.25), "origin": (0.0, 0.0, 0.12)}),
+    ("box_link", "box", {"half": (0.40, 0.35, 0.28), "origin": (0.0, 0.0, 0.22)}),
     ("fr_wheel_link", "sphere", {"radius": 0.18, "origin": (0.0, 0.0, 0.0)}),
     ("fl_wheel_link", "sphere", {"radius": 0.18, "origin": (0.0, 0.0, 0.0)}),
     ("rl_wheel_link", "sphere", {"radius": 0.18, "origin": (0.0, 0.0, 0.0)}),

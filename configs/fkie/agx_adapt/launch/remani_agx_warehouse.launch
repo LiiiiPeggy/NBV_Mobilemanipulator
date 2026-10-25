@@ -32,7 +32,10 @@
        Loaded again after include so it overrides exp_ranger_cr10_param.yaml. -->
   <arg name="init_state_yaml" default="/workspace/configs/fkie/agx_adapt/config/remani_init_aisle_observe.yaml"/>
 
-  <include file="$(find remani_planner)/launch/advanced_param_sim.xml">
+  <!-- Project-local advanced_param: forces use_global_map inside node after yaml.
+       Absolute /workspace path (find remani_planner ../../../ does not reach configs/). -->
+  <include file="/workspace/configs/fkie/agx_adapt/launch/advanced_param_sim_agx.xml"
+           pass_all_args="false">
     <arg name="map_size_x_" value="$(arg map_size_x)"/>
     <arg name="map_size_y_" value="$(arg map_size_y)"/>
     <arg name="map_size_z_" value="$(arg map_size_z)"/>
@@ -53,10 +56,29 @@
     <arg name="target_type" value="$(arg target_type)"/>
     <arg name="min_turning_radius" value="0.5"/>
     <arg name="max_seach_time" value="5.0"/>
+    <arg name="use_global_map" value="$(eval arg('environment_mode') != 'static_empty')"/>
+    <arg name="use_load_map" value="$(eval arg('environment_mode') != 'static_empty')"/>
+    <arg name="global_plan" value="$(eval arg('environment_mode') != 'static_empty')"/>
+    <arg name="max_time_scale" value="64.0"/>
   </include>
 
   <!-- Override after advanced_param_sim loads exp_*.yaml init_state -->
   <rosparam file="$(arg init_state_yaml)" command="load"/>
   <rosparam file="$(arg init_state_yaml)" command="load" ns="mm_controller_node"/>
   <rosparam file="$(arg init_state_yaml)" command="load" ns="remani_planner_node"/>
+
+  <!-- Critical: remani_planner_param.yaml defaults use_global_map:=false which
+       makes GridMap subscribe to remapped optical /realsense/depth/points2 as
+       "local" cloud → wrong frame / ghost obstacles / IK collision. Force the
+       filtered world cloud path for simulated warehouse Mode B. -->
+  <group unless="$(eval arg('environment_mode') == 'static_empty')">
+    <param name="grid_map/use_global_map" value="true"/>
+    <param name="grid_map/use_load_map" value="true"/>
+    <param name="remani_planner_node/grid_map/use_global_map" value="true"/>
+    <param name="remani_planner_node/grid_map/use_load_map" value="true"/>
+    <param name="mm_controller_node/grid_map/use_global_map" value="true"/>
+    <param name="mm_controller_node/grid_map/use_load_map" value="true"/>
+    <param name="fsm/global_plan" value="true"/>
+    <param name="remani_planner_node/fsm/global_plan" value="true"/>
+  </group>
 </launch>
