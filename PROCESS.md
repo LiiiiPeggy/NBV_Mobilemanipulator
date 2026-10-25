@@ -305,3 +305,12 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - **C2**：`environment_mode=simulated` + 过滤 global_cloud；起始 footprint 0 命中；table 区域有点。小增量 EE 曾因规划驶向桌面 FOV 中途 `BACKEND COLLISION`（真实图障碍，非关碰撞）。
 - **C3**：弃用日志正则/默认 RPY；`save_fkie_action_result.py` 保存完整 quat；`--align-remani-ee` 由多采样证实 Δz≈−base_z；禁止二次 `/ee_goal` 覆盖。
 - **C4**：FKIE goal 经 REMANI `EXEC_TRAJ`；相机到位误差≈2 mm；前后 RGB stamp/图像差分 → `PERCEPTION_DELTA_OK`。证据见 `reports/remani_*` / `fkie_remani_*`。
+
+## 2026-10-25 P0–P2：Mode B 抖动 / 轨迹可视化 / 到达 GSAM
+
+- **P0 根因 A**：`joint_bridge` 订阅并重发 `/joint_states` → 与 Gazebo 叠加，`js_hz≈7.5 kHz`、`dup≈0.96`。修复：单向 Gazebo→JS；桥只转发 `/mm/mani/joint_state`。
+- **P0 根因 B**：车桥与 ODE 接触竞争。零写入 → Ranger 自由滚动（`base_x_std≈0.15`）；2 Hz soft-hold 锯齿抬 std；最终 **spawn latch + settled 精确 snap + twist=0**，ARM-only 50 Hz hold。`after_idle_v5` 全部门禁通过。
+- **P0 实验 B**：仅关节→底盘滚；仅底盘→臂掉；两者同时 → `ok_idle`。
+- **连带修复**：`fkie_stop_sim` 误 `pkill` Mode B launcher、把僵尸 gzserver 当活进程 → bringup 自杀/假失败。
+- **P1**：`visualize_remani_trajectory.py` + RViz Path；本轮 REMANI aisle `IK failed: collision` → planned 空，actual/base 有数据。
+- **P2**：到达门禁（位姿/速度/新鲜图）后系统 `cv_bridge` 存帧 + conda 离线 GSAM；`GSAM_ARRIVAL_OK`。证据：`reports/agx_mode_b_jitter_*`、`remani_trajectory_visualization.md`、`gsam_nbv_arrival_trigger.md`。

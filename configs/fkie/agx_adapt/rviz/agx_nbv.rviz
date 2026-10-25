@@ -92,6 +92,34 @@ Visualization Manager:
       Name: NBVGoals
       Enabled: true
       Topic: /robot/nbv_goals_viz
+    - Class: rviz/Path
+      Name: EE_Planned
+      Enabled: true
+      Topic: /nbv/trajectory/ee_planned
+      Color: 255; 220; 0
+      Line Style: Lines
+      Line Width: 0.03
+      Buffer Length: 1
+    - Class: rviz/Path
+      Name: EE_Actual
+      Enabled: true
+      Topic: /nbv/trajectory/ee_actual
+      Color: 0; 220; 220
+      Line Style: Lines
+      Line Width: 0.03
+      Buffer Length: 1
+    - Class: rviz/Path
+      Name: Base_Actual
+      Enabled: true
+      Topic: /nbv/trajectory/base_actual
+      Color: 40; 100; 255
+      Line Style: Lines
+      Line Width: 0.025
+      Buffer Length: 1
+    - Class: rviz/Marker
+      Name: NBV_Goal_Marker
+      Enabled: true
+      Marker Topic: /nbv/visualization/nbv_goal
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

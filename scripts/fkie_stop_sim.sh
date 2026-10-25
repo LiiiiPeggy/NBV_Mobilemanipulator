@@ -45,7 +45,8 @@ pkill -f 'controller_manager/spawner' 2>/dev/null || true
 pkill -f 'remani_planner_node' 2>/dev/null || true
 pkill -f 'mm_controller_node' 2>/dev/null || true
 pkill -f 'robot_state_publisher' 2>/dev/null || true
-pkill -f '/workspace/scripts/start_agx_warehouse_mode_b.sh' 2>/dev/null || true
+# Never pkill the Mode B launcher that invoked us (STOP_SIM_KEEP_PID).
+kill_other_matching '/workspace/scripts/start_agx_warehouse_mode_b.sh'
 
 # Gazebo Classic + RViz (FKIE stack only lives in this container)
 killall -TERM gzserver gzclient rviz 2>/dev/null || true
@@ -70,15 +71,14 @@ left=$(pgrep -a gzserver 2>/dev/null || true)
 left2=$(pgrep -a gzclient 2>/dev/null || true)
 # Defunct (zombie) entries may remain until parent exits; report but treat as cleaned if only Z
 # Match real binaries only (ignore bash/grep lines that mention gzserver)
-alive_server=$(ps -eo pid,stat,cmd | awk '$NF ~ /(^|\/)gzserver$/ || $3 ~ /(^|\/)gzserver$/ { if ($2 !~ /Z/) print }' || true)
-alive_client=$(ps -eo pid,stat,cmd | awk '$NF ~ /(^|\/)gzclient$/ || $3 ~ /(^|\/)gzclient/ { if ($2 !~ /Z/) print }' || true)
-# Fallback: pgrep -x
-if [ -z "${alive_server}" ]; then
-  alive_server=$(pgrep -a -x gzserver 2>/dev/null || true)
-fi
-if [ -z "${alive_client}" ]; then
-  alive_client=$(pgrep -a -x gzclient 2>/dev/null || true)
-fi
+# Only non-zombie processes count as "still running". pgrep -x matches zombies too —
+# do NOT fall back to pgrep after a clean non-Z scan (that falsely fails stop).
+alive_server=$(ps -eo pid,stat,cmd | awk '
+  $2 !~ /Z/ && ($0 ~ /(^|\/|[[:space:]])gzserver([[:space:]]|$)/) { print }
+' || true)
+alive_client=$(ps -eo pid,stat,cmd | awk '
+  $2 !~ /Z/ && ($0 ~ /(^|\/|[[:space:]])gzclient([[:space:]]|$)/) { print }
+' || true)
 if [ -n "${alive_server}${alive_client}" ]; then
   echo "[fkie-stop] WARNING still running (non-zombie):"
   echo "${alive_server}"
