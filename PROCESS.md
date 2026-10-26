@@ -340,3 +340,10 @@ live FKIE 目标经 `nbv_to_remani_ee_goal.py --publish` 成功；`rostopic info
 - **假 complete 根因**：① mm_controller 旧 `car_cmd` 把车拖到 ≈(8.4,7.5) 出多边形；② 重启后 `cached_nodes` 空。修复：aisle hold 预检、FKIE warm-up、`sample_in_unknown=true`。
 - **多候选**：step2 候选 0/1 REMANI 失败后候选 2 成功（ee≈5 mm）。
 - **验收 run**：`online_20261025_173649_seed42_reach` — 2×base + 1×camera 全到位；记忆 unique Recall≈0.36 / confirmed≈0.27。报告：`reports/fkie_multistep_reachability_and_discovery.md`。
+
+## 2026-10-27：空闲轨迹门控 + 抖动回归 + 底盘粗筛 + 五步尝试
+
+- **线团根因**：`visualize_remani_trajectory` 空闲持续追加 TF；5 mm 阈值挡不住长时间累积。修复：运动门控 + 新任务清 Path。
+- **抖动**：未改 hold；`idle_v6` 门禁全过 → 接受 Mode B 残差微振。
+- **底盘安全**：直线 footprint vs warehouse cloud；穿货架目标 rc=12 拒绝。
+- **五步**：`online_20261026_221739_seed42_s5` — step1 camera OK；step2 三候选 REMANI 失败合法终止。报告：`reports/agx_idle_trajectory_and_fkie_baseline.md`。

@@ -20,9 +20,10 @@ import numpy as np
 import rospy
 import tf2_ros
 import tf.transformations as tft
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import Odometry, Path
 from quadrotor_msgs.msg import PolynomialTraj
+from std_msgs.msg import Bool
 from visualization_msgs.msg import Marker
 
 
@@ -149,11 +150,32 @@ def sample_traj_msgs(msg, dt=0.05):
 
 
 class TrajViz(object):
-    def __init__(self, specs, ee_frame, base_z, max_actual=5000):
+    """Accumulate EE/base actual Paths only while a motion is active.
+
+    Idle TF noise previously exceeded the 5 mm downsample and painted a cyan
+    scribble on /nbv/trajectory/ee_actual. Recording is gated by REMANI
+    planning start/finish, /ee_goal, and non-hold car_cmd changes.
+    """
+
+    def __init__(
+        self,
+        specs,
+        ee_frame,
+        base_z,
+        max_actual=5000,
+        min_step_m=0.02,
+        settle_after_finish_s=1.5,
+        car_cmd_motion_xy=0.08,
+        car_cmd_motion_yaw_deg=8.0,
+    ):
         self.specs = specs
         self.ee_frame = ee_frame
         self.base_z = float(base_z)
         self.max_actual = int(max_actual)
+        self.min_step_m = float(min_step_m)
+        self.settle_after_finish_s = float(settle_after_finish_s)
+        self.car_cmd_motion_xy = float(car_cmd_motion_xy)
+        self.car_cmd_motion_yaw = math.radians(float(car_cmd_motion_yaw_deg))
         self.buf = tf2_ros.Buffer()
         tf2_ros.TransformListener(self.buf)
 
@@ -166,18 +188,78 @@ class TrajViz(object):
         self.ee_actual.header.frame_id = "world"
         self.base_actual = Path()
         self.base_actual.header.frame_id = "world"
+        self.recording = False
+        self.record_until = 0.0
+        self._last_car_cmd = None
+        self._hold_car_cmd = None
         self.metrics = {
             "planned_points": 0,
             "ee_actual_points": 0,
             "base_actual_points": 0,
             "last_goal": None,
+            "recording": False,
+            "segments": 0,
         }
 
         rospy.Subscriber("/planning/trajectory", PolynomialTraj, self._on_traj, queue_size=20)
+        rospy.Subscriber("/planning/start", Bool, self._on_plan_start, queue_size=10)
+        rospy.Subscriber("/planning/finish", Bool, self._on_plan_finish, queue_size=10)
         rospy.Subscriber("/ground_truth/state", Odometry, self._on_odom, queue_size=20)
+        rospy.Subscriber("/mm_controller_node/car_cmd", Twist, self._on_car_cmd, queue_size=5)
         rospy.Subscriber("/nbv/goal_pose", PoseStamped, self._on_nbv_goal, queue_size=1)
-        rospy.Subscriber("/ee_goal", PoseStamped, self._on_ee_goal_as_nbv, queue_size=1)
+        rospy.Subscriber("/ee_goal", PoseStamped, self._on_ee_goal, queue_size=1)
         self.timer = rospy.Timer(rospy.Duration(0.05), self._tick_tf)
+        # Publish empty latched paths so RViz does not keep a stale scribble.
+        self._publish_actuals()
+
+    def _now(self):
+        return rospy.Time.now().to_sec()
+
+    def _clear_actuals(self):
+        self.ee_actual = Path()
+        self.ee_actual.header.frame_id = "world"
+        self.base_actual = Path()
+        self.base_actual.header.frame_id = "world"
+        self.metrics["ee_actual_points"] = 0
+        self.metrics["base_actual_points"] = 0
+        self.metrics["segments"] = int(self.metrics.get("segments") or 0) + 1
+        self._publish_actuals()
+
+    def _publish_actuals(self):
+        stamp = rospy.Time.now()
+        self.ee_actual.header.stamp = stamp
+        self.base_actual.header.stamp = stamp
+        self.pub_ee_act.publish(self.ee_actual)
+        self.pub_base_act.publish(self.base_actual)
+
+    def _begin_recording(self, reason, clear=True):
+        was = self.recording
+        # Clear only when starting a new segment (avoid wiping mid-lerp).
+        if clear and not was:
+            self._clear_actuals()
+        elif clear and was and reason in ("ee_goal", "planning/start", "planning/trajectory"):
+            self._clear_actuals()
+        self.recording = True
+        self.record_until = 0.0  # open-ended until finish/settle
+        self.metrics["recording"] = True
+        rospy.loginfo_throttle(1.0, "traj_viz RECORD start (%s)", reason)
+
+    def _schedule_stop(self, reason):
+        self.record_until = self._now() + self.settle_after_finish_s
+        rospy.loginfo_throttle(1.0, "traj_viz RECORD settle (%.1fs) after %s", self.settle_after_finish_s, reason)
+
+    def _maybe_stop_recording(self):
+        if not self.recording:
+            return
+        if self.record_until > 0.0 and self._now() >= self.record_until:
+            self.recording = False
+            self.metrics["recording"] = False
+            self._publish_actuals()
+            rospy.loginfo(
+                "traj_viz RECORD stop (ee=%d base=%d)",
+                len(self.ee_actual.poses),
+                len(self.base_actual.poses),
+            )
 
     def _append(self, path, x, y, z, qx=0, qy=0, qz=0, qw=1):
         ps = PoseStamped()
@@ -194,9 +276,46 @@ class TrajViz(object):
         if len(path.poses) > self.max_actual:
             path.poses = path.poses[-self.max_actual :]
 
+    def _on_plan_start(self, msg):
+        if bool(msg.data):
+            self._begin_recording("planning/start", clear=True)
+
+    def _on_plan_finish(self, msg):
+        if bool(msg.data):
+            self._schedule_stop("planning/finish")
+
+    def _on_ee_goal(self, msg):
+        self._on_ee_goal_as_nbv(msg)
+        self._begin_recording("ee_goal", clear=True)
+
+    def _on_car_cmd(self, msg):
+        # REMANI/Mode B car_cmd: linear.(x,y,z)=(world_x, world_y, yaw)
+        tgt = (float(msg.linear.x), float(msg.linear.y), float(msg.linear.z))
+        if self._hold_car_cmd is None:
+            self._hold_car_cmd = tgt
+            self._last_car_cmd = tgt
+            return
+        if self._last_car_cmd is None:
+            self._last_car_cmd = tgt
+            return
+        dx = tgt[0] - self._last_car_cmd[0]
+        dy = tgt[1] - self._last_car_cmd[1]
+        dyaw = tgt[2] - self._last_car_cmd[2]
+        while dyaw > math.pi:
+            dyaw -= 2.0 * math.pi
+        while dyaw < -math.pi:
+            dyaw += 2.0 * math.pi
+        moved = math.hypot(dx, dy) >= self.car_cmd_motion_xy or abs(dyaw) >= self.car_cmd_motion_yaw
+        self._last_car_cmd = tgt
+        if moved:
+            self._begin_recording("car_cmd_retarget", clear=not self.recording)
+            # Base-only moves have no planning/finish; keep recording through lerp.
+            self.record_until = self._now() + 15.0
+
     def _on_traj(self, msg):
         if msg.action != PolynomialTraj.ACTION_ADD:
             return
+        self._begin_recording("planning/trajectory", clear=True)
         path = Path()
         path.header.stamp = rospy.Time.now()
         path.header.frame_id = "world"
@@ -224,14 +343,24 @@ class TrajViz(object):
         rospy.loginfo_throttle(2.0, "ee_planned points=%d", len(path.poses))
 
     def _on_odom(self, msg):
+        self._maybe_stop_recording()
+        if not self.recording:
+            return
         p = msg.pose.pose.position
         o = msg.pose.pose.orientation
+        if self.base_actual.poses:
+            lp = self.base_actual.poses[-1].pose.position
+            if (p.x - lp.x) ** 2 + (p.y - lp.y) ** 2 + (p.z - lp.z) ** 2 < (self.min_step_m**2):
+                return
         self.base_actual.header.stamp = rospy.Time.now()
         self._append(self.base_actual, p.x, p.y, p.z, o.x, o.y, o.z, o.w)
         self.metrics["base_actual_points"] = len(self.base_actual.poses)
         self.pub_base_act.publish(self.base_actual)
 
     def _tick_tf(self, _evt):
+        self._maybe_stop_recording()
+        if not self.recording:
+            return
         try:
             t = self.buf.lookup_transform(
                 "world", self.ee_frame, rospy.Time(0), rospy.Duration(0.05)
@@ -241,10 +370,10 @@ class TrajViz(object):
         p = t.transform.translation
         o = t.transform.rotation
         self.ee_actual.header.stamp = rospy.Time.now()
-        # downsample: skip if < 5 mm from last
+        # Motion downsample (idle must not record at all — gating above).
         if self.ee_actual.poses:
             lp = self.ee_actual.poses[-1].pose.position
-            if (p.x - lp.x) ** 2 + (p.y - lp.y) ** 2 + (p.z - lp.z) ** 2 < (0.005**2):
+            if (p.x - lp.x) ** 2 + (p.y - lp.y) ** 2 + (p.z - lp.z) ** 2 < (self.min_step_m**2):
                 return
         self._append(self.ee_actual, p.x, p.y, p.z, o.x, o.y, o.z, o.w)
         self.metrics["ee_actual_points"] = len(self.ee_actual.poses)

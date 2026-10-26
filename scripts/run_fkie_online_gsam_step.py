@@ -364,7 +364,15 @@ def main():
             exec_j = json.loads(base_out.read_text()) if base_out.is_file() else {"ok": False}
             exec_path.write_text(json.dumps(exec_j, indent=2))
             exec_ok = bool(exec_j.get("ok"))
-            attempts.append({"action_type": "base_pose", "ok": exec_ok})
+            attempts.append(
+                {
+                    "action_type": "base_pose",
+                    "ok": exec_ok,
+                    "path_safety": exec_j.get("path_safety"),
+                    "refused": exec_j.get("refused"),
+                    "rc": ex.returncode,
+                }
+            )
             write_status(
                 status_path,
                 phase="VERIFY_ARRIVAL",
@@ -372,18 +380,22 @@ def main():
                 camera="SETTLING" if exec_ok else "FAIL",
             )
             if not exec_ok:
+                reason = "base_path_unsafe" if (
+                    exec_j.get("refused") == "BASE_PATH_UNSAFE" or ex.returncode == 12
+                ) else "base_exec_fail"
                 (step_dir / "terminate.json").write_text(
                     json.dumps(
                         {
                             "terminated": True,
-                            "reason": "base_exec_fail",
+                            "reason": reason,
                             "step": args.step,
                             "attempts": attempts,
+                            "path_safety": exec_j.get("path_safety"),
                         },
                         indent=2,
                     )
                 )
-                print("STEP_TERMINATED_BASE_FAIL")
+                print("STEP_TERMINATED_BASE_FAIL", reason)
                 raise SystemExit(11)
             # Keep Mode B car bridge hold at arrived pose (avoid idle snap-back).
             run(
@@ -394,6 +406,7 @@ def main():
                     str(fkie_path),
                     "--timeout",
                     "8",
+                    "--skip-collision-check",
                     "--out",
                     str(step_dir / "base_relatch.json"),
                 ],

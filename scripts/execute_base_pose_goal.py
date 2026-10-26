@@ -4,6 +4,10 @@
 FKIE request_base_pose / goal_pose_3d → base relocation (NOT EE/camera optical).
 Uses the same SetModelState plant as agx_mode_b_car_cmd_bridge so REMANI idle
 car_cmd hold cannot steal the target. Also publishes car_cmd for observability.
+
+Before motion: sample the straight-line XY path against the warehouse / OctoMap
+cloud (robot footprint radius). Refuse known collisions — this is NOT Nav2;
+it only blocks obviously unsafe lerp through shelves/tables.
 """
 from __future__ import print_function
 
@@ -13,10 +17,13 @@ import math
 import time
 from pathlib import Path
 
+import numpy as np
 import rospy
+import sensor_msgs.point_cloud2 as pc2
 from gazebo_msgs.msg import ModelState
 from gazebo_msgs.srv import GetModelState, SetModelState
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import PointCloud2
 
 
 def yaw_from_quat(q):
@@ -55,6 +62,89 @@ def load_goal(path):
     raise SystemExit("Unrecognized base goal JSON: %s" % path)
 
 
+def sample_polyline(x0, y0, x1, y1, step=0.10):
+    dist = math.hypot(x1 - x0, y1 - y0)
+    if dist < 1e-6:
+        return [(x0, y0)]
+    n = max(1, int(math.ceil(dist / step)))
+    return [
+        (x0 + (x1 - x0) * (i / float(n)), y0 + (y1 - y0) * (i / float(n)))
+        for i in range(n + 1)
+    ]
+
+
+def load_obstacle_xy(cloud_topics, z_min, z_max, timeout):
+    """Return Nx2 obstacle XY from the first available filtered cloud."""
+    last_err = None
+    for topic in cloud_topics:
+        try:
+            msg = rospy.wait_for_message(topic, PointCloud2, timeout=timeout)
+        except Exception as e:
+            last_err = "%s: %s" % (topic, e)
+            continue
+        pts = []
+        for x, y, z in pc2.read_points(msg, field_names=("x", "y", "z"), skip_nans=True):
+            if z_min <= float(z) <= z_max:
+                pts.append((float(x), float(y)))
+        if pts:
+            return np.asarray(pts, dtype=np.float64), topic, len(msg.data)
+        last_err = "%s: empty after z filter" % topic
+    raise RuntimeError("no obstacle cloud (%s)" % last_err)
+
+
+def check_path_clear(samples, obstacles_xy, radius, start_xy, start_clear_m=0.35):
+    """Footprint disk vs obstacle XY. Ignore obstacles near current robot start."""
+    if obstacles_xy.size == 0:
+        return {
+            "ok": True,
+            "n_samples": len(samples),
+            "n_hits": 0,
+            "first_hit": None,
+            "reason": "no_obstacles_in_band",
+        }
+    r2 = float(radius) ** 2
+    sc2 = float(start_clear_m) ** 2
+    sx, sy = start_xy
+    # Pre-filter obstacles away from start (robot body residual)
+    ox = obstacles_xy[:, 0]
+    oy = obstacles_xy[:, 1]
+    away = (ox - sx) ** 2 + (oy - sy) ** 2 > sc2
+    obs = obstacles_xy[away]
+    if obs.size == 0:
+        return {
+            "ok": True,
+            "n_samples": len(samples),
+            "n_hits": 0,
+            "first_hit": None,
+            "reason": "obstacles_only_near_start",
+            "n_obstacles_used": 0,
+        }
+    hits = []
+    for x, y in samples:
+        d2 = (obs[:, 0] - x) ** 2 + (obs[:, 1] - y) ** 2
+        i = int(np.argmin(d2))
+        if d2[i] <= r2:
+            hits.append(
+                {
+                    "path_xy": [float(x), float(y)],
+                    "obstacle_xy": [float(obs[i, 0]), float(obs[i, 1])],
+                    "dist_m": float(math.sqrt(d2[i])),
+                }
+            )
+            if len(hits) >= 3:
+                break
+    return {
+        "ok": len(hits) == 0,
+        "n_samples": len(samples),
+        "n_hits": len(hits),
+        "first_hit": hits[0] if hits else None,
+        "hits_sample": hits,
+        "n_obstacles_used": int(obs.shape[0]),
+        "footprint_radius_m": float(radius),
+        "reason": "clear" if not hits else "footprint_obstacle_collision",
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--from-fkie-json", required=True)
@@ -65,6 +155,21 @@ def main():
     ap.add_argument("--alpha", type=float, default=0.25, help="lerp factor toward goal")
     ap.add_argument("--rate", type=float, default=50.0)
     ap.add_argument("--out", default="")
+    ap.add_argument(
+        "--footprint-radius",
+        type=float,
+        default=0.70,
+        help="XY disk radius for path collision (Ranger ~1.1x0.9 + margin)",
+    )
+    ap.add_argument("--path-step", type=float, default=0.12)
+    ap.add_argument("--z-min", type=float, default=0.18)
+    ap.add_argument("--z-max", type=float, default=1.80)
+    ap.add_argument(
+        "--cloud-topics",
+        default="/warehouse_map/cloud_filtered,/map_generator/global_cloud,/robot/octomap_point_cloud_centers",
+    )
+    ap.add_argument("--skip-collision-check", action="store_true")
+    ap.add_argument("--cloud-timeout", type=float, default=8.0)
     args = ap.parse_args()
 
     gx, gy, gyaw, meta = load_goal(args.from_fkie_json)
@@ -86,6 +191,50 @@ def main():
     dist0 = math.hypot(gx - x0, gy - y0)
     if dist0 > 8.0:
         raise SystemExit("BASE_GOAL_TOO_FAR: dist=%.2f m — refuse" % dist0)
+
+    safety = {"ok": True, "skipped": True, "reason": "skip_collision_check"}
+    if not args.skip_collision_check:
+        topics = [t.strip() for t in args.cloud_topics.split(",") if t.strip()]
+        try:
+            obs_xy, topic_used, raw_len = load_obstacle_xy(
+                topics, args.z_min, args.z_max, args.cloud_timeout
+            )
+            samples = sample_polyline(x0, y0, gx, gy, step=args.path_step)
+            safety = check_path_clear(
+                samples, obs_xy, args.footprint_radius, start_xy=(x0, y0)
+            )
+            safety["cloud_topic"] = topic_used
+            safety["cloud_raw_bytes"] = raw_len
+            safety["n_obstacle_points"] = int(obs_xy.shape[0])
+            safety["skipped"] = False
+        except Exception as e:
+            # Fail closed: unknown map → refuse motion (do not claim collision-free).
+            safety = {
+                "ok": False,
+                "skipped": False,
+                "reason": "map_unavailable",
+                "error": str(e),
+            }
+        if not safety.get("ok"):
+            out = {
+                "ok": False,
+                "action_type": "base_pose",
+                "goal_xy": [gx, gy],
+                "goal_yaw": gyaw,
+                "start_xy": [x0, y0],
+                "start_yaw": yaw0,
+                "path_length_xy": dist0,
+                "elapsed_s": 0.0,
+                "path_safety": safety,
+                "plant": "gazebo_set_model_state_lerp",
+                "refused": "BASE_PATH_UNSAFE",
+            }
+            if args.out:
+                Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+                Path(args.out).write_text(json.dumps(out, indent=2))
+            print(json.dumps(out, indent=2))
+            print("BASE_PATH_UNSAFE:", safety.get("reason"))
+            raise SystemExit(12)
 
     cmd = Twist()
     cmd.linear.x, cmd.linear.y, cmd.linear.z = gx, gy, gyaw
@@ -151,6 +300,7 @@ def main():
         "path_length_xy": dist0,
         "elapsed_s": time.time() - t0,
         "final": final,
+        "path_safety": safety,
         "plant": "gazebo_set_model_state_lerp",
         "source_meta_keys": sorted(meta.keys()),
     }
